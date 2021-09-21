@@ -15,15 +15,19 @@ namespace MurderMystery
 
         public static MurderMystery Singleton { get; private set; }
 
+        public EventHandlers EventHandlers { get; private set; }
+
         public override void OnEnabled()
         {
             Singleton = this;
+            EventHandlers = new EventHandlers(this);
 
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
+            EventHandlers = null;
             Singleton = null;
 
             base.OnDisabled();
