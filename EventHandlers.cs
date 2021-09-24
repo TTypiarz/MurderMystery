@@ -1,5 +1,6 @@
 ﻿using Exiled.Events.EventArgs;
 using MurderMystery.API.Enums;
+using MurderMystery.API.Features;
 using System;
 using Handlers = Exiled.Events.Handlers;
 
@@ -140,12 +141,24 @@ namespace MurderMystery
 
         private void Verified(VerifiedEventArgs ev)
         {
+            MMPlayer player = new MMPlayer(ev.Player);
 
+            player.Verified();
+
+            MMPlayer.List.Add(player);
+
+            MurderMystery.Debug("Player verified. (Added to list)");
         }
 
         private void Destroying(DestroyingEventArgs ev)
         {
+            MMPlayer player = MMPlayer.Get(ev.Player);
 
+            player?.Destroying();
+
+            MMPlayer.List.Remove(player);
+
+            MurderMystery.Debug("Player destroying. (Removed from list)");
         }
 
         #endregion

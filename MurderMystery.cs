@@ -41,6 +41,8 @@ namespace MurderMystery
 
         public override void OnDisabled()
         {
+            ToggleGamemode(false);
+
             RoundStartPatch = null;
 
             Harmony.UnpatchAll();

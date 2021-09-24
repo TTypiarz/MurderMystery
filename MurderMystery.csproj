@@ -87,6 +87,7 @@
   <ItemGroup>
     <Compile Include="API\Enums\MMEventType.cs" />
     <Compile Include="API\Enums\MMPerm.cs" />
+    <Compile Include="API\Features\MMPlayer.cs" />
     <Compile Include="Commands\GeneralCmds.cs" />
     <Compile Include="Commands\General\Disable.cs" />
     <Compile Include="Commands\General\Enable.cs" />
