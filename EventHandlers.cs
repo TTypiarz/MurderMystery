@@ -1,5 +1,6 @@
 ﻿using Exiled.Events.EventArgs;
 using MurderMystery.API.Enums;
+using System;
 using Handlers = Exiled.Events.Handlers;
 
 namespace MurderMystery
@@ -13,49 +14,77 @@ namespace MurderMystery
         public bool PlayerEnabled { get; private set; } = false;
         public bool GamemodeEnabled { get; private set; } = false;
 
+        public bool Started { get; internal set; }
+
         internal void ToggleEvent(MMEventType eventType, bool enable)
         {
-            switch (eventType)
+            try
             {
-                case MMEventType.Primary:
-                    if (enable ^ PrimaryEnabled)
-                    {
-                        if (enable)
-                        {
-                            Handlers.Server.WaitingForPlayers += WaitingForPlayers;
-                            Handlers.Server.RoundStarted += RoundStarted;
-                            Handlers.Server.RoundEnded += RoundEnded;
-                            Handlers.Server.RestartingRound += RestartingRound;
-                        }
-                        else
-                        {
-                            Handlers.Server.WaitingForPlayers -= WaitingForPlayers;
-                            Handlers.Server.RoundStarted -= RoundStarted;
-                            Handlers.Server.RoundEnded -= RoundEnded;
-                            Handlers.Server.RestartingRound -= RestartingRound;
-                        }
-                    }
-                    return;
+                MurderMystery.Debug($"{(enable ? "Enabling" : "Disabling")} {eventType} events.");
 
-                case MMEventType.Player:
-                    if (enable ^ PlayerEnabled)
-                    {
-                        if (enable)
+                switch (eventType)
+                {
+                    case MMEventType.Primary:
+                        if (enable ^ PrimaryEnabled)
                         {
-                            Handlers.Player.Verified += Verified;
-                            Handlers.Player.Destroying += Destroying;
+                            if (enable)
+                            {
+                                Handlers.Server.WaitingForPlayers += WaitingForPlayers;
+                                Handlers.Server.RoundStarted += RoundStarted;
+                                Handlers.Server.RoundEnded += RoundEnded;
+                                Handlers.Server.RestartingRound += RestartingRound;
+                            }
+                            else
+                            {
+                                Handlers.Server.WaitingForPlayers -= WaitingForPlayers;
+                                Handlers.Server.RoundStarted -= RoundStarted;
+                                Handlers.Server.RoundEnded -= RoundEnded;
+                                Handlers.Server.RestartingRound -= RestartingRound;
+                            }
+
+                            PrimaryEnabled = enable;
                         }
-                        else
+                        return;
+
+                    case MMEventType.Player:
+                        if (enable ^ PlayerEnabled)
                         {
-                            Handlers.Player.Verified -= Verified;
-                            Handlers.Player.Destroying -= Destroying;
+                            if (enable)
+                            {
+                                Handlers.Player.Verified += Verified;
+                                Handlers.Player.Destroying += Destroying;
+                            }
+                            else
+                            {
+                                Handlers.Player.Verified -= Verified;
+                                Handlers.Player.Destroying -= Destroying;
+                            }
+
+                            PlayerEnabled = enable;
                         }
-                    }
-                    return;
+                        return;
 
 
-                case MMEventType.Gamemode:
-                    return;
+                    case MMEventType.Gamemode:
+                        if (enable ^ GamemodeEnabled)
+                        {
+                            if (enable)
+                            {
+
+                            }
+                            else
+                            {
+
+                            }
+
+                            GamemodeEnabled = enable;
+                        }
+                        return;
+                }
+            }
+            catch (Exception e)
+            {
+                MurderMystery.Error($"FATAL ERROR:\n{e}");
             }
         }
 
@@ -63,22 +92,46 @@ namespace MurderMystery
 
         private void WaitingForPlayers()
         {
+            if (!PlayerEnabled)
+            {
+                MurderMystery.Debug("Primary event called. Enabling player events...");
 
+                ToggleEvent(MMEventType.Player, true);
+
+                MurderMystery.RoundStartPatch.Patch(true);
+            }
         }
 
         private void RoundStarted()
         {
+            if (GamemodeEnabled)
+            {
+                MurderMystery.Debug("Primary event called. Starting gamemode...");
 
+                MurderMystery.StartGamemode();
+
+                Started = true;
+            }
         }
 
         private void RoundEnded(RoundEndedEventArgs ev)
         {
+            if (GamemodeEnabled)
+            {
+                MurderMystery.Debug("Primary event called. Disabling gamemode events...");
 
+                ToggleEvent(MMEventType.Gamemode, false);
+            }
         }
 
         private void RestartingRound()
         {
+            if (Started)
+            {
+                MurderMystery.Debug("Primary event called. Disabling gamemode...");
 
+                MurderMystery.ToggleGamemode(false);
+            }
         }
 
         #endregion

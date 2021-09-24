@@ -30,8 +30,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>References\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>References\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
@@ -82,9 +86,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\Enums\MMEventType.cs" />
+    <Compile Include="API\Enums\MMPerm.cs" />
+    <Compile Include="Commands\GeneralCmds.cs" />
+    <Compile Include="Commands\General\Disable.cs" />
+    <Compile Include="Commands\General\Enable.cs" />
+    <Compile Include="Commands\MMCommand.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="EventHandlers.cs" />
+    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Extensions\PlayerExtensions.cs" />
     <Compile Include="MurderMystery.cs" />
+    <Compile Include="Patches\RoundStartPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
