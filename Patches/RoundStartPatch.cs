@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using MurderMystery.API.Enums;
+using MurderMystery.API.Features;
 using System;
 using System.Reflection;
 
@@ -46,6 +47,14 @@ namespace MurderMystery.Patches
             MurderMystery.Debug("Patch called.");
 
             MurderMystery.Singleton.EventHandlers.ToggleEvent(MMEventType.Gamemode, true);
+
+            for (int i = 0; i < MMPlayer.List.Count; i++)
+            {
+                if (MMPlayer.List[i].Player.IsOverwatchEnabled)
+                {
+                    MMPlayer.List[i].SetRoleSilently(MMRole.Spectator);
+                }
+            }
 
             MurderMystery.Singleton.RoundStartPatch.Patch(false);
         }

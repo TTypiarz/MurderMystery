@@ -87,7 +87,13 @@
   <ItemGroup>
     <Compile Include="API\Enums\MMEventType.cs" />
     <Compile Include="API\Enums\MMPerm.cs" />
+    <Compile Include="API\Enums\MMRole.cs" />
+    <Compile Include="API\Features\CustomRole.cs" />
     <Compile Include="API\Features\MMPlayer.cs" />
+    <Compile Include="API\Roles\Detective.cs" />
+    <Compile Include="API\Roles\Innocent.cs" />
+    <Compile Include="API\Roles\Murderer.cs" />
+    <Compile Include="API\Roles\Spectator.cs" />
     <Compile Include="Commands\GeneralCmds.cs" />
     <Compile Include="Commands\General\Disable.cs" />
     <Compile Include="Commands\General\Enable.cs" />
