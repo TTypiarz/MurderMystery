@@ -152,13 +152,14 @@ namespace MurderMystery
 
         private void Destroying(DestroyingEventArgs ev)
         {
-            MMPlayer player = MMPlayer.Get(ev.Player);
+            if (MMPlayer.Get(ev.Player, out MMPlayer player))
+            {
+                player.Destroying();
 
-            player?.Destroying();
+                MMPlayer.List.Remove(player);
 
-            MMPlayer.List.Remove(player);
-
-            MurderMystery.Debug("Player destroying. (Removed from list)");
+                MurderMystery.Debug("Player destroying. (Removed from list)");
+            }
         }
 
         #endregion

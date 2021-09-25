@@ -11,18 +11,6 @@ namespace MurderMystery.API.Features
 
         public Player Player { get; }
 
-        public static MMPlayer Get(Player ply)
-        {
-            for (int i = 0; i < List.Count; i++)
-            {
-                if (List[i].Player == ply)
-                {
-                    return List[i];
-                }
-            }
-
-            return null;
-        }
         public static bool Get(Player ply, out MMPlayer player)
         {
             for (int i = 0; i < List.Count; i++)
