@@ -21,7 +21,7 @@ namespace MurderMystery
         {
             try
             {
-                MurderMystery.Debug($"{(enable ? "Enabling" : "Disabling")} {eventType} events.");
+                MMLog.Debug($"{(enable ? "Enabling" : "Disabling")} {eventType} events.");
 
                 switch (eventType)
                 {
@@ -85,7 +85,7 @@ namespace MurderMystery
             }
             catch (Exception e)
             {
-                MurderMystery.Error($"FATAL ERROR:\n{e}");
+                MMLog.Error($"FATAL ERROR:\n{e}");
             }
         }
 
@@ -95,7 +95,7 @@ namespace MurderMystery
         {
             if (!PlayerEnabled)
             {
-                MurderMystery.Debug("Primary event called. Enabling player events...");
+                MMLog.Debug("Primary event called. Enabling player events...");
 
                 ToggleEvent(MMEventType.Player, true);
 
@@ -107,7 +107,7 @@ namespace MurderMystery
         {
             if (GamemodeEnabled)
             {
-                MurderMystery.Debug("Primary event called. Starting gamemode...");
+                MMLog.Debug("Primary event called. Starting gamemode...");
 
                 MurderMystery.StartGamemode();
 
@@ -119,7 +119,7 @@ namespace MurderMystery
         {
             if (GamemodeEnabled)
             {
-                MurderMystery.Debug("Primary event called. Disabling gamemode events...");
+                MMLog.Debug("Primary event called. Disabling gamemode events...");
 
                 ToggleEvent(MMEventType.Gamemode, false);
             }
@@ -129,7 +129,7 @@ namespace MurderMystery
         {
             if (Started)
             {
-                MurderMystery.Debug("Primary event called. Disabling gamemode...");
+                MMLog.Debug("Primary event called. Disabling gamemode...");
 
                 MurderMystery.ToggleGamemode(false);
             }
@@ -147,7 +147,7 @@ namespace MurderMystery
 
             MMPlayer.List.Add(player);
 
-            MurderMystery.Debug("Player verified. (Added to list)");
+            MMLog.Debug("Player verified. (Added to list)");
         }
 
         private void Destroying(DestroyingEventArgs ev)
@@ -158,7 +158,7 @@ namespace MurderMystery
 
                 MMPlayer.List.Remove(player);
 
-                MurderMystery.Debug("Player destroying. (Removed from list)");
+                MMLog.Debug("Player destroying. (Removed from list)");
             }
         }
 

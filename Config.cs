@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Interfaces;
+using MurderMystery.API.Features;
 using System.ComponentModel;
 
 namespace MurderMystery
@@ -13,7 +14,7 @@ namespace MurderMystery
 
         internal void Validate()
         {
-            MurderMystery.Info("Config has been validated.");
+            MMLog.Info("Config has been validated.");
         }
     }
 }

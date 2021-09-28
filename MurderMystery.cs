@@ -2,10 +2,9 @@
 using Exiled.API.Features;
 using HarmonyLib;
 using MurderMystery.API.Enums;
+using MurderMystery.API.Features;
 using MurderMystery.Patches;
 using System;
-using System.Diagnostics;
-using System.Reflection;
 
 namespace MurderMystery
 {
@@ -53,45 +52,12 @@ namespace MurderMystery
             base.OnDisabled();
         }
 
-        #region Logging
-        internal static void Info(string message)
-        {
-            Log.Info($"{GetCallerString()} {message}");
-        }
-
-        internal static void Debug(string message)
-        {
-            if (Singleton != null && (DebugVersion || Singleton.Config.Debug))
-            {
-                Log.Debug($"{GetCallerString()} {message}");
-            }
-        }
-
-        internal static void Error(object message)
-        {
-            Log.Error($"{GetCallerString()} {message}");
-        }
-
-        public static string GetCallerString()
-        {
-            try
-            {
-                MethodBase method = new StackFrame(2).GetMethod();
-
-                return $"[{method.DeclaringType.Name}::{method.Name}]";
-            }
-            catch
-            {
-                return "[null]";
-            }
-        }
-        #endregion
-
+        #region GamemodeManager
         internal void ToggleGamemode(bool enable)
         {
             if (enable ^ EventHandlers.PrimaryEnabled)
             {
-                Debug($"{(enable ? "Enabling" : "Disabling")} the murder mystery gamemode.");
+                MMLog.Debug($"{(enable ? "Enabling" : "Disabling")} the murder mystery gamemode.");
 
                 if (enable)
                 {
@@ -110,7 +76,7 @@ namespace MurderMystery
             }
             else
             {
-                Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {GetCallerString()}");
+                MMLog.Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {MMUtilities.GetCallerString()}");
             }
         }
 
@@ -118,14 +84,15 @@ namespace MurderMystery
         {
             try
             {
-                Debug("Primary function called.");
+                MMLog.Debug("Primary function called.");
 
                 // Event will be setup here.
             }
             catch (Exception e)
             {
-                Error($"FATAL ERROR:\n{e}");
+                MMLog.Error($"FATAL ERROR:\n{e}");
             }
         }
+        #endregion
     }
 }

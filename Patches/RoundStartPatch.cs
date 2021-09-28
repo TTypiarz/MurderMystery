@@ -18,7 +18,7 @@ namespace MurderMystery.Patches
 
         internal void Patch(bool patch)
         {
-            MurderMystery.Debug($"{(patch ? "Enabling" : "Disabling")} patch.");
+            MMLog.Debug($"{(patch ? "Enabling" : "Disabling")} patch.");
 
             try
             {
@@ -38,13 +38,13 @@ namespace MurderMystery.Patches
             }
             catch (Exception e)
             {
-                MurderMystery.Error($"ERROR:\n{e}");
+                MMLog.Error($"ERROR:\n{e}");
             }
         }
 
         private static void Prefix()
         {
-            MurderMystery.Debug("Patch called.");
+            MMLog.Debug("Patch called.");
 
             MurderMystery.Singleton.EventHandlers.ToggleEvent(MMEventType.Gamemode, true);
 
