@@ -59,20 +59,11 @@ namespace MurderMystery
             Log.Info($"{GetCallerString()} {message}");
         }
 
-        internal static void Debug(string message, bool asError = false)
+        internal static void Debug(string message)
         {
             if (Singleton != null && (DebugVersion || Singleton.Config.Debug))
             {
-                string debugMessage = $"{GetCallerString()} {message}";
-
-                if (asError)
-                {
-                    Log.SendRaw($"[MurderMystery] [DEBUG ERROR] {debugMessage}", ConsoleColor.DarkRed);
-                }
-                else
-                {
-                    Log.Debug(debugMessage);
-                }
+                Log.Debug($"{GetCallerString()} {message}");
             }
         }
 
@@ -119,7 +110,7 @@ namespace MurderMystery
             }
             else
             {
-                Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {GetCallerString()}", true);
+                Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {GetCallerString()}");
             }
         }
 
