@@ -33,8 +33,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>References\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Lib.Harmony.2.1.1\lib\net472\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>References\Assembly-CSharp-firstpass.dll</HintPath>
@@ -46,28 +46,28 @@
       <HintPath>References\CommandSystem.Core.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.API, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.API.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.API.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Bootstrap, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.Bootstrap.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.Bootstrap.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.CreditTags, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.CreditTags.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.CreditTags.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.CustomItems, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.CustomItems.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.CustomItems.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Events, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.Events.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.Events.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Loader, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.Loader.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.Loader.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Permissions, Version=3.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.Permissions.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.Permissions.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Updater, Version=3.1.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\EXILED.3.0.0-alpha.84\lib\net472\Exiled.Updater.dll</HintPath>
+      <HintPath>packages\EXILED.3.0.0-alpha.88\lib\net472\Exiled.Updater.dll</HintPath>
     </Reference>
     <Reference Include="Mirror">
       <HintPath>References\Mirror.dll</HintPath>
@@ -101,11 +101,10 @@
     <Compile Include="Commands\General\Enable.cs" />
     <Compile Include="Commands\MMCommand.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="EventHandlers.cs" />
+    <Compile Include="GamemodeManager.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\PlayerExtensions.cs" />
     <Compile Include="MurderMystery.cs" />
-    <Compile Include="Patches\RoundStartPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

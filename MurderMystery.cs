@@ -1,9 +1,6 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
-using HarmonyLib;
-using MurderMystery.API.Enums;
-using MurderMystery.API.Features;
-using MurderMystery.Patches;
+//using HarmonyLib;
 using System;
 
 namespace MurderMystery
@@ -18,20 +15,17 @@ namespace MurderMystery
         public override Version Version => new Version(1, 0, 0);
 
         public static MurderMystery Singleton { get; private set; }
-        public static bool DebugVersion => true;
+        public static bool DebugVersion => InternalDebugVersion;
+        internal const bool InternalDebugVersion = true;
 
-        public EventHandlers EventHandlers { get; private set; }
-        public Harmony Harmony { get; private set; }
-
-        public RoundStartPatch RoundStartPatch { get; private set; }
+        public GamemodeManager GamemodeManager { get; private set; }
+        //public Harmony Harmony { get; private set; }
 
         public override void OnEnabled()
         {
             Singleton = this;
-            EventHandlers = new EventHandlers(this);
-            Harmony = new Harmony("zereth.plugins.murdermystery");
-
-            RoundStartPatch = new RoundStartPatch(Harmony);
+            GamemodeManager = new GamemodeManager(this);
+            //Harmony = new Harmony("zereth.plugins.murdermystery");
 
             Config.Validate();
 
@@ -40,59 +34,14 @@ namespace MurderMystery
 
         public override void OnDisabled()
         {
-            ToggleGamemode(false);
+            GamemodeManager.ToggleGamemode(false);
 
-            RoundStartPatch = null;
-
-            Harmony.UnpatchAll();
-            Harmony = null;
-            EventHandlers = null;
+            //Harmony.UnpatchAll();
+            //Harmony = null;
+            GamemodeManager = null;
             Singleton = null;
 
             base.OnDisabled();
         }
-
-        #region GamemodeManager
-        internal void ToggleGamemode(bool enable)
-        {
-            if (enable ^ EventHandlers.PrimaryEnabled)
-            {
-                MMLog.Debug($"{(enable ? "Enabling" : "Disabling")} the murder mystery gamemode.");
-
-                if (enable)
-                {
-                    EventHandlers.ToggleEvent(MMEventType.Primary, true);
-                }
-                else
-                {
-                    EventHandlers.ToggleEvent(MMEventType.Primary, false);
-                    EventHandlers.ToggleEvent(MMEventType.Player, false);
-                    EventHandlers.ToggleEvent(MMEventType.Gamemode, false);
-
-                    RoundStartPatch.Patch(false);
-
-                    EventHandlers.Started = false;
-                }
-            }
-            else
-            {
-                MMLog.Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {MMUtilities.GetCallerString()}");
-            }
-        }
-
-        internal void StartGamemode()
-        {
-            try
-            {
-                MMLog.Debug("Primary function called.");
-
-                // Event will be setup here.
-            }
-            catch (Exception e)
-            {
-                MMLog.Error($"FATAL ERROR:\n{e}");
-            }
-        }
-        #endregion
     }
 }

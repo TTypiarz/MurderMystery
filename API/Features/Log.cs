@@ -10,7 +10,7 @@ namespace MurderMystery.API.Features
         }
         public static void Debug(object message)
         {
-            Log.Debug($"{MMUtilities.GetCallerString()} {message}", MurderMystery.Singleton != null && (MurderMystery.DebugVersion || MurderMystery.Singleton.Config.Debug));
+            Log.Debug($"{MMUtilities.GetCallerString()} {message}", MurderMystery.InternalDebugVersion || (MurderMystery.Singleton != null && MurderMystery.Singleton.Config.Debug));
         }
         public static void Warn(object message)
         {

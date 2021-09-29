@@ -1,4 +1,5 @@
-﻿using Exiled.Events.EventArgs;
+﻿using Exiled.API.Extensions;
+using Exiled.Events.EventArgs;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using System;
@@ -6,17 +7,43 @@ using Handlers = Exiled.Events.Handlers;
 
 namespace MurderMystery
 {
-    public class EventHandlers
+    public class GamemodeManager
     {
-        internal EventHandlers(MurderMystery murderMystery) => MurderMystery = murderMystery;
+        internal GamemodeManager(MurderMystery murderMystery) => MurderMystery = murderMystery;
         private readonly MurderMystery MurderMystery;
 
         public bool PrimaryEnabled { get; private set; } = false;
         public bool PlayerEnabled { get; private set; } = false;
         public bool GamemodeEnabled { get; private set; } = false;
 
-        public bool Started { get; internal set; }
+        public bool WaitingPlayers { get; private set; } = false;
+        public bool Started { get; private set; } = false;
 
+        internal void ToggleGamemode(bool enable)
+        {
+            if (enable ^ PrimaryEnabled)
+            {
+                MMLog.Debug($"{(enable ? "Enabling" : "Disabling")} the murder mystery gamemode.");
+
+                if (enable)
+                {
+                    ToggleEvent(MMEventType.Primary, true);
+                }
+                else
+                {
+                    ToggleEvent(MMEventType.Primary, false);
+                    ToggleEvent(MMEventType.Player, false);
+                    ToggleEvent(MMEventType.Gamemode, false);
+
+                    Started = false;
+                    WaitingPlayers = false;
+                }
+            }
+            else
+            {
+                MMLog.Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {MMUtilities.GetCallerString()}");
+            }
+        }
         internal void ToggleEvent(MMEventType eventType, bool enable)
         {
             try
@@ -71,11 +98,13 @@ namespace MurderMystery
                         {
                             if (enable)
                             {
-
+                                Handlers.Player.ChangingRole += ChangingRole;
+                                Handlers.Player.Spawning += Spawning;
                             }
                             else
                             {
-
+                                Handlers.Player.ChangingRole -= ChangingRole;
+                                Handlers.Player.Spawning -= Spawning;
                             }
 
                             GamemodeEnabled = enable;
@@ -99,17 +128,19 @@ namespace MurderMystery
 
                 ToggleEvent(MMEventType.Player, true);
 
-                MurderMystery.RoundStartPatch.Patch(true);
+                WaitingPlayers = true;
             }
         }
 
         private void RoundStarted()
         {
-            if (GamemodeEnabled)
+            if (WaitingPlayers)
             {
-                MMLog.Debug("Primary event called. Starting gamemode...");
+                MMLog.Debug("Primary event called. Enabling gamemode events and Starting gamemode...");
 
-                MurderMystery.StartGamemode();
+                ToggleEvent(MMEventType.Gamemode, true);
+
+                StartGamemode();
 
                 Started = true;
             }
@@ -131,7 +162,7 @@ namespace MurderMystery
             {
                 MMLog.Debug("Primary event called. Disabling gamemode...");
 
-                MurderMystery.ToggleGamemode(false);
+                ToggleGamemode(false);
             }
         }
 
@@ -162,6 +193,39 @@ namespace MurderMystery
             }
         }
 
+        #endregion
+
+        #region Gamemode Events
+
+        private void ChangingRole(ChangingRoleEventArgs ev)
+        {
+            if (ev.Reason == Exiled.API.Enums.SpawnReason.RoundStart)
+            {
+                ev.NewRole = RoleType.ClassD;
+            }
+        }
+
+        private void Spawning(SpawningEventArgs ev)
+        {
+            ev.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
+        }
+
+        #endregion
+
+        #region Primary Functions
+        private void StartGamemode()
+        {
+            try
+            {
+                MMLog.Debug("Primary function called.");
+
+                // Event will be setup here.
+            }
+            catch (Exception e)
+            {
+                MMLog.Error($"FATAL ERROR:\n{e}");
+            }
+        }
         #endregion
     }
 }
