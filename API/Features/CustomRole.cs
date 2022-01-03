@@ -1,4 +1,5 @@
 ﻿using MurderMystery.API.Enums;
+using MurderMystery.API.Roles;
 using System.Collections.Generic;
 
 namespace MurderMystery.API.Features
@@ -8,6 +9,10 @@ namespace MurderMystery.API.Features
         private static readonly Dictionary<MMRole, CustomRole> Roles = new Dictionary<MMRole, CustomRole>()
         {
             [MMRole.None] = null,
+            [MMRole.Spectator] = new Spectator(),
+            [MMRole.Innocent] = new Innocent(),
+            [MMRole.Murderer] = new Murderer(),
+            [MMRole.Detective] = new Detective()
         };
 
         public static bool GetCustomRole(MMRole role, out CustomRole customRole)

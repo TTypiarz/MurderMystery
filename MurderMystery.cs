@@ -1,6 +1,6 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
-//using HarmonyLib;
+using HarmonyLib;
 using System;
 
 namespace MurderMystery
@@ -19,13 +19,14 @@ namespace MurderMystery
         internal const bool InternalDebugVersion = true;
 
         public GamemodeManager GamemodeManager { get; private set; }
-        //public Harmony Harmony { get; private set; }
+        public Harmony Harmony { get; private set; }
 
         public override void OnEnabled()
         {
             Singleton = this;
             GamemodeManager = new GamemodeManager();
-            //Harmony = new Harmony("zereth.plugins.murdermystery");
+            Harmony = new Harmony("zereth.plugins.murdermystery");
+            Harmony.PatchAll();
 
             Config.Validate();
 
@@ -36,8 +37,8 @@ namespace MurderMystery
         {
             GamemodeManager.ToggleGamemode(false);
 
-            //Harmony.UnpatchAll();
-            //Harmony = null;
+            Harmony.UnpatchAll();
+            Harmony = null;
             GamemodeManager = null;
             Singleton = null;
 

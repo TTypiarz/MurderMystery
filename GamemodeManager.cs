@@ -1,9 +1,13 @@
 ﻿using Exiled.API.Extensions;
+using Exiled.API.Features;
 using Exiled.Events.EventArgs;
 using InventorySystem.Items.Firearms.Attachments;
+using MEC;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
+using MurderMystery.Extensions;
 using System;
+using System.Collections.Generic;
 using Handlers = Exiled.Events.Handlers;
 
 namespace MurderMystery
@@ -18,6 +22,8 @@ namespace MurderMystery
 
         public bool WaitingPlayers { get; private set; } = false;
         public bool Started { get; private set; } = false;
+
+        public Random Rng { get; private set; } = new Random();
 
         internal void ToggleGamemode(bool enable)
         {
@@ -224,12 +230,76 @@ namespace MurderMystery
                 {
                     controller.NetworkStatus = 4;
                 }
-
-
             }
             catch (Exception e)
             {
                 MMLog.Error($"FATAL ERROR:\n{e}");
+                Map.ClearBroadcasts();
+                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>");
+                Timing.CallDelayed(10, () =>
+                {
+                    MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
+                    Round.Restart();
+                });
+            }
+        }
+
+        internal void LateStartGamemode()
+        {
+            try
+            {
+                MMLog.Debug("Primary function called.");
+
+                if (!MurderMystery.Singleton.Config.CalculateRoles(MMPlayer.List.Count, out int m, out int d))
+                {
+                    throw new Exception("Invalid role calculation.");
+                }
+
+                for (int i = 0; i < MMPlayer.List.Count; i++)
+                {
+                    if (MMPlayer.List[i].Player.IsOverwatchEnabled)
+                        MMPlayer.List[i].SetRoleSilently(MMRole.Spectator);
+                }
+
+                List<MMPlayer> players = new List<MMPlayer>(MMPlayer.List.GetRole(MMRole.None));
+
+                int totalm = 0;
+                int totald = 0;
+                while (totalm < m)
+                {
+                    int index = Rng.Next(players.Count);
+                    players[index].SetRoleSilently(MMRole.Murderer);
+                    players.RemoveAt(index);
+                    totalm++;
+                }
+                while (totald < d)
+                {
+                    int index = Rng.Next(players.Count);
+                    players[index].SetRoleSilently(MMRole.Detective);
+                    players.RemoveAt(index);
+                    totald++;
+                }
+
+                for (int i = 0; i < players.Count; i++)
+                {
+                    players[i].SetRoleSilently(MMRole.Innocent);
+                }
+
+                for (int i = 0; i < MMPlayer.List.Count; i++)
+                {
+                    MMPlayer.List[i].CustomRole.OnFirstSpawn(MMPlayer.List[i]);
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error($"FATAL ERROR:\n{e}");
+                Map.ClearBroadcasts();
+                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>");
+                Timing.CallDelayed(10, () =>
+                {
+                    MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
+                    Round.Restart();
+                });
             }
         }
         #endregion
