@@ -38,6 +38,7 @@ namespace MurderMystery.Commands.General
             {
                 if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
                 {
+                    Map.ClearBroadcasts();
                     Map.Broadcast(15, "<size=30>Murder Mystery gamemode disabled. Round restart in 10 seconds.</size>");
                     Timing.CallDelayed(10, () =>
                     {

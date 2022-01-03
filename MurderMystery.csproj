@@ -103,6 +103,7 @@
     <Compile Include="Commands\GeneralCmds.cs" />
     <Compile Include="Commands\General\Disable.cs" />
     <Compile Include="Commands\General\Enable.cs" />
+    <Compile Include="Commands\General\Status.cs" />
     <Compile Include="Commands\MMCommand.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="GamemodeManager.cs" />

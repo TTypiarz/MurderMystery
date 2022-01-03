@@ -78,6 +78,14 @@ namespace MurderMystery.API.Features
 
         internal void Verified()
         {
+            if (MurderMystery.Singleton.GamemodeManager.Started)
+            {
+                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.</size>");
+            }
+            else
+            {
+                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is enabled for this round.</size>");
+            }
         }
         internal void Destroying()
         {
