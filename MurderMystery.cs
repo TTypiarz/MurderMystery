@@ -24,7 +24,7 @@ namespace MurderMystery
         public override void OnEnabled()
         {
             Singleton = this;
-            GamemodeManager = new GamemodeManager(this);
+            GamemodeManager = new GamemodeManager();
             //Harmony = new Harmony("zereth.plugins.murdermystery");
 
             Config.Validate();

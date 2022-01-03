@@ -1,5 +1,6 @@
 ﻿using Exiled.API.Extensions;
 using Exiled.Events.EventArgs;
+using InventorySystem.Items.Firearms.Attachments;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using System;
@@ -9,8 +10,7 @@ namespace MurderMystery
 {
     public class GamemodeManager
     {
-        internal GamemodeManager(MurderMystery murderMystery) => MurderMystery = murderMystery;
-        private readonly MurderMystery MurderMystery;
+        internal GamemodeManager() { }
 
         public bool PrimaryEnabled { get; private set; } = false;
         public bool PlayerEnabled { get; private set; } = false;
@@ -219,7 +219,13 @@ namespace MurderMystery
             {
                 MMLog.Debug("Primary function called.");
 
-                // Event will be setup here.
+                // Make workstations un-usable to prevent attachment changes by players.
+                foreach (WorkstationController controller in WorkstationController.AllWorkstations)
+                {
+                    controller.NetworkStatus = 4;
+                }
+
+
             }
             catch (Exception e)
             {
