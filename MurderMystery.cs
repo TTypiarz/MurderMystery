@@ -1,6 +1,8 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.API.Interfaces;
 using HarmonyLib;
+using MurderMystery.API.Features;
 using System;
 
 namespace MurderMystery
@@ -29,6 +31,15 @@ namespace MurderMystery
             Harmony.PatchAll();
 
             Config.Validate();
+
+            foreach (IPlugin<IConfig> plugin in Exiled.Loader.Loader.Plugins)
+            {
+                if (plugin.Name == "RespawnTimer")
+                {
+                    MMLog.Info(plugin.GetType().AssemblyQualifiedName);
+                    break;
+                }
+            }
 
             base.OnEnabled();
         }

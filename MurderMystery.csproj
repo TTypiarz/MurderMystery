@@ -79,6 +79,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Mirror.dll</HintPath>
     </Reference>
+    <Reference Include="RespawnTimer">
+      <HintPath>References\RespawnTimer.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -92,6 +95,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\DependencyChecker.cs" />
     <Compile Include="API\Enums\MMEventType.cs" />
     <Compile Include="API\Enums\MMPerm.cs" />
     <Compile Include="API\Enums\MMRole.cs" />
