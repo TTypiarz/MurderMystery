@@ -250,11 +250,6 @@ namespace MurderMystery
             {
                 MMLog.Debug("Primary function called.");
 
-                if (!MurderMystery.Singleton.Config.CalculateRoles(MMPlayer.List.Count, out int m, out int d))
-                {
-                    throw new Exception("Invalid role calculation.");
-                }
-
                 for (int i = 0; i < MMPlayer.List.Count; i++)
                 {
                     if (MMPlayer.List[i].Player.IsOverwatchEnabled)
@@ -263,8 +258,12 @@ namespace MurderMystery
 
                 List<MMPlayer> players = new List<MMPlayer>(MMPlayer.List.GetRole(MMRole.None));
 
+                if (!MurderMystery.Singleton.Config.CalculateRoles(players.Count, out int m, out int d))
+                {
+                    throw new Exception("Invalid role calculation.");
+                }
+
                 int totalm = 0;
-                int totald = 0;
                 while (totalm < m)
                 {
                     int index = Rng.Next(players.Count);
@@ -272,6 +271,7 @@ namespace MurderMystery
                     players.RemoveAt(index);
                     totalm++;
                 }
+                int totald = 0;
                 while (totald < d)
                 {
                     int index = Rng.Next(players.Count);
