@@ -7,7 +7,10 @@ namespace MurderMystery.Patches
     {
         private static void Postfix()
         {
-            MurderMystery.Singleton.GamemodeManager.LateStartGamemode();
+            if (MurderMystery.Singleton.GamemodeManager.PrimaryEnabled)
+            {
+                MurderMystery.Singleton.GamemodeManager.LateStartGamemode();
+            }
         }
     }
 }
