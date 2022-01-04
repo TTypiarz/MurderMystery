@@ -28,7 +28,6 @@ namespace MurderMystery
             Singleton = this;
             GamemodeManager = new GamemodeManager();
             Harmony = new Harmony("zereth.plugins.murdermystery");
-            Harmony.PatchAll();
 
             Config.Validate();
 
