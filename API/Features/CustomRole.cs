@@ -6,7 +6,7 @@ namespace MurderMystery.API.Features
 {
     public abstract class CustomRole
     {
-        private static readonly Dictionary<MMRole, CustomRole> Roles = new Dictionary<MMRole, CustomRole>()
+        internal static readonly Dictionary<MMRole, CustomRole> Roles = new Dictionary<MMRole, CustomRole>()
         {
             [MMRole.None] = null,
             [MMRole.Spectator] = new Spectator(),

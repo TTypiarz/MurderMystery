@@ -6,6 +6,7 @@ using MEC;
 using MurderMystery.API;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
+using MurderMystery.API.Interfaces;
 using MurderMystery.Extensions;
 using MurderMystery.Patches;
 using System;
@@ -62,6 +63,8 @@ namespace MurderMystery
 
                     ServerConsole.FriendlyFire = GameCore.ConfigFile.ServerConfig.GetBool("friendly_fire");
                     FriendlyFireConfig.PauseDetector = false;
+
+                    CustomItemPool.ProtectedItemIds.Clear();
                 }
             }
             else
@@ -132,6 +135,7 @@ namespace MurderMystery
                                 Handlers.Player.ChangingRole += ChangingRole;
                                 Handlers.Player.Spawning += Spawning;
                                 Handlers.Player.Dying += Dying;
+                                Handlers.Player.DroppingItem += DroppingItem;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
 
@@ -144,6 +148,7 @@ namespace MurderMystery
                                 Handlers.Player.ChangingRole -= ChangingRole;
                                 Handlers.Player.Spawning -= Spawning;
                                 Handlers.Player.Dying -= Dying;
+                                Handlers.Player.DroppingItem -= DroppingItem;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
 
@@ -316,6 +321,12 @@ namespace MurderMystery
             }
         }
 
+        private void DroppingItem(DroppingItemEventArgs ev)
+        {
+            if (CustomItemPool.ProtectedItemIds.Contains(ev.Item.Serial))
+                ev.IsAllowed = false;
+        }
+
         #endregion
 
         #region Primary Functions
@@ -331,7 +342,23 @@ namespace MurderMystery
                     controller.NetworkStatus = 4;
                 }
 
+                Timing.CallDelayed(MurderMystery.Singleton.Config.EquipmentDelay, () =>
+                {
+                    foreach (CustomRole role in CustomRole.Roles.Values)
+                    {
+                        if (role is IEquipment equipment)
+                        {
+                            List<MMPlayer> players = MMPlayer.List.GetRole(role.Role);
 
+                            for (int i = 0; i < players.Count; i++)
+                            {
+                                equipment.GiveEquipment(players[i]);
+
+                                players[i].Player.Broadcast(10, equipment.EquipmentMessage);
+                            }
+                        }
+                    }
+                });
             }
             catch (Exception e)
             {

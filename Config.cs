@@ -25,11 +25,14 @@ namespace MurderMystery
         [Description("Sets the detective offset, simulates more players in the playercount when multiplying the percentage.")]
         public int DetectiveOffset { get; set; } = DefaultDetectiveOffset;
 
+        [Description("The delay from the start of the round (in seconds) before equipment is given to players.")]
+        public int EquipmentDelay { get; set; } = DefaultEquipmentDelay;
+
         public const decimal DefaultMurdererPercentage = 1m / 6m;
         public const int DefaultMurdererOffset = 0;
         public const decimal DefaultDetectivePercentage = 1m / 12m;
         public const int DefaultDetectiveOffset = 6;
-
+        public const int DefaultEquipmentDelay = 45;
 
         internal void Validate()
         {
