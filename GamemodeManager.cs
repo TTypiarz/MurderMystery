@@ -125,13 +125,17 @@ namespace MurderMystery
                             {
                                 Handlers.Player.ChangingRole += ChangingRole;
                                 Handlers.Player.Spawning += Spawning;
+                                Handlers.Player.Dying += Dying;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
+                                Handlers.Server.EndingRound += EndingRound;
                             }
                             else
                             {
                                 Handlers.Player.ChangingRole -= ChangingRole;
                                 Handlers.Player.Spawning -= Spawning;
+                                Handlers.Player.Dying -= Dying;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
+                                Handlers.Server.EndingRound -= EndingRound;
                             }
 
                             GamemodeEnabled = enable;
@@ -231,7 +235,17 @@ namespace MurderMystery
             if (ev.Reason == Exiled.API.Enums.SpawnReason.RoundStart)
             {
                 ev.NewRole = RoleType.ClassD;
+
+                ev.Ammo.Clear();
+                ev.Items.Clear();
             }
+            /*else
+            {
+                if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                {
+                    player.Role = MMRole.Spectator;
+                }
+            }*/
         }
 
         private void Spawning(SpawningEventArgs ev)
@@ -244,6 +258,50 @@ namespace MurderMystery
             ev.IsAllowed = false;
             ev.MaximumRespawnAmount = 0;
             ev.Players.Clear();
+        }
+
+        private void EndingRound(EndingRoundEventArgs ev)
+        {
+            ev.IsAllowed = false;
+            ev.IsRoundEnded = false;
+
+            int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
+            int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
+
+            if (innocents == 0 && murderers > 0)
+            {
+                Map.ClearBroadcasts();
+                Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>");
+                goto Allow;
+            }
+
+            if (innocents > 0 && murderers == 0)
+            {
+                Map.ClearBroadcasts();
+                Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>");
+                goto Allow;
+            }
+
+            if (innocents == 0 && murderers == 0)
+            {
+                Map.ClearBroadcasts();
+                Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>");
+                goto Allow;
+            }
+
+            return;
+
+        Allow:
+            ev.IsAllowed = true;
+            ev.IsRoundEnded = true;
+        }
+
+        private void Dying(DyingEventArgs ev)
+        {
+            if (MMPlayer.Get(ev.Target, out MMPlayer ply))
+            {
+                ply.Role = MMRole.Spectator;
+            }
         }
 
         #endregion
