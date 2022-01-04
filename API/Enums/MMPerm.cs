@@ -4,6 +4,7 @@
     {
         None,
         Enable,
-        Debug
+        Debug,
+        ShowRoles
     }
 }
