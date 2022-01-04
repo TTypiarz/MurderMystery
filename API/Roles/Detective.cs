@@ -16,7 +16,7 @@ namespace MurderMystery.API.Roles
 
         internal override void OnFirstSpawn(MMPlayer player)
         {
-            Firearm gun = Server.Host.Inventory.CreateItemInstance(ItemType.GunCOM18, false) as Firearm;
+            Firearm gun = Server.Host.Inventory.CreateItemInstance(ItemType.GunRevolver, false) as Firearm;
             gun.Status = new FirearmStatus(gun.Status.Ammo, FirearmStatusFlags.Cocked | FirearmStatusFlags.Chambered | FirearmStatusFlags.MagazineInserted, 553);
 
             player.Player.Inventory.UserInventory.Items[gun.ItemSerial] = gun;
