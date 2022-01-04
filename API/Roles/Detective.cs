@@ -17,7 +17,8 @@ namespace MurderMystery.API.Roles
         internal override void OnFirstSpawn(MMPlayer player)
         {
             Firearm gun = player.Player.AddItem(ItemType.GunRevolver).Base as Firearm;
-            gun.Status = new FirearmStatus(6, FirearmStatusFlags.Cocked | FirearmStatusFlags.MagazineInserted, 553);
+            gun.Status = new FirearmStatus(6, gun.Status.Flags, 553);
+            MMLog.Debug(gun.Status.Flags);
 
             base.OnFirstSpawn(player);
         }
