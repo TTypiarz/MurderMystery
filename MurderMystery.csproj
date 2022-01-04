@@ -79,8 +79,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Mirror.dll</HintPath>
     </Reference>
-    <Reference Include="RespawnTimer">
-      <HintPath>References\RespawnTimer.dll</HintPath>
+    <Reference Include="RespawnTimer_publicized">
+      <HintPath>References\RespawnTimer_publicized.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

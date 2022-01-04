@@ -42,6 +42,11 @@ namespace MurderMystery
                     ToggleEvent(MMEventType.Player, false);
                     ToggleEvent(MMEventType.Gamemode, false);
 
+                    if (RespawnTimerPatch.PatchEnabled)
+                    {
+                        RespawnTimerPatch.TogglePatch(false);
+                    }
+
                     Started = false;
                     WaitingPlayers = false;
                 }
@@ -111,11 +116,13 @@ namespace MurderMystery
                             {
                                 Handlers.Player.ChangingRole += ChangingRole;
                                 Handlers.Player.Spawning += Spawning;
+                                Handlers.Server.RespawningTeam += RespawningTeam;
                             }
                             else
                             {
                                 Handlers.Player.ChangingRole -= ChangingRole;
                                 Handlers.Player.Spawning -= Spawning;
+                                Handlers.Server.RespawningTeam -= RespawningTeam;
                             }
 
                             GamemodeEnabled = enable;
@@ -138,6 +145,8 @@ namespace MurderMystery
                 MMLog.Debug("Primary event called. Enabling player events...");
 
                 ToggleEvent(MMEventType.Player, true);
+
+                RespawnTimerPatch.TogglePatch(true);
 
                 WaitingPlayers = true;
             }
@@ -219,6 +228,13 @@ namespace MurderMystery
         private void Spawning(SpawningEventArgs ev)
         {
             ev.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
+        }
+
+        private void RespawningTeam(RespawningTeamEventArgs ev)
+        {
+            ev.IsAllowed = false;
+            ev.MaximumRespawnAmount = 0;
+            ev.Players.Clear();
         }
 
         #endregion
