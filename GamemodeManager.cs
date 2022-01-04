@@ -84,6 +84,7 @@ namespace MurderMystery
                                 Handlers.Server.RestartingRound += RestartingRound;
 
                                 MurderMystery.Singleton.Harmony.Patch(LateRoundStartPatch.Original, null, LateRoundStartPatch.Patch);
+                                MurderMystery.Singleton.Harmony.Patch(RoundSummaryPatch.Original, RoundSummaryPatch.Patch);
                             }
                             else
                             {
@@ -93,6 +94,7 @@ namespace MurderMystery
                                 Handlers.Server.RestartingRound -= RestartingRound;
 
                                 MurderMystery.Singleton.Harmony.Unpatch(LateRoundStartPatch.Original, HarmonyLib.HarmonyPatchType.Postfix);
+                                MurderMystery.Singleton.Harmony.Unpatch(RoundSummaryPatch.Original, HarmonyLib.HarmonyPatchType.Prefix);
                             }
 
                             PrimaryEnabled = enable;
