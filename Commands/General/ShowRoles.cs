@@ -19,7 +19,7 @@ namespace MurderMystery.Commands.General
 
         public override bool ExecuteInternally(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            response = string.Empty;
+            response = "\nPlayers current roles:\n";
 
             for (int i = 0; i < MMPlayer.List.Count; i++)
             {

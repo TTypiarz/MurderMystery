@@ -12,6 +12,10 @@ namespace MurderMystery.API.Features
         {
             Log.Debug($"{MMUtilities.GetCallerString()} {message}", MurderMystery.InternalDebugVersion || (MurderMystery.Singleton != null && MurderMystery.Singleton.Config.Debug));
         }
+        public static void Debug(string caller, object message)
+        {
+            Log.Debug($"{caller} {message}", MurderMystery.InternalDebugVersion || (MurderMystery.Singleton != null && MurderMystery.Singleton.Config.Debug));
+        }
         public static void Warn(object message)
         {
             Log.Warn($"{MMUtilities.GetCallerString()} {message}");

@@ -3,7 +3,6 @@ using System.Reflection;
 
 namespace MurderMystery.Patches
 {
-    [HarmonyPatch(typeof(CharacterClassManager), nameof(CharacterClassManager.SetRandomRoles))]
     public class LateRoundStartPatch
     {
         public static MethodInfo Original { get; } = typeof(CharacterClassManager).GetMethod("SetRandomRoles", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -11,7 +10,10 @@ namespace MurderMystery.Patches
 
         private static void Postfix()
         {
-            MurderMystery.Singleton.GamemodeManager.LateStartGamemode();
+            if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
+            {
+                MurderMystery.Singleton.GamemodeManager.LateStartGamemode();
+            }
         }
     }
 }

@@ -100,7 +100,7 @@
     <Compile Include="API\Enums\MMPerm.cs" />
     <Compile Include="API\Enums\MMRole.cs" />
     <Compile Include="API\Features\CustomRole.cs" />
-    <Compile Include="API\Features\Log.cs" />
+    <Compile Include="API\Features\MMLog.cs" />
     <Compile Include="API\Features\MMPlayer.cs" />
     <Compile Include="API\Features\MMUtilities.cs" />
     <Compile Include="API\Roles\Detective.cs" />
