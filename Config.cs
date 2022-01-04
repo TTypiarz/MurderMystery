@@ -100,7 +100,7 @@ namespace MurderMystery
                 return true;
             }
 
-            if (1m / MurdererPercentage < playercount)
+            if (1m / MurdererPercentage > playercount)
             {
                 murderers = 1;
             }
@@ -109,7 +109,7 @@ namespace MurderMystery
                 murderers = (int)Math.Floor(MurdererPercentage * (playercount + MurdererOffset));
             }
 
-            if (1m / DetectivePercentage < playercount)
+            if (1m / DetectivePercentage > playercount)
             {
                 detectives = 1;
             }

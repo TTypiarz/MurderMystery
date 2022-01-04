@@ -29,6 +29,11 @@ namespace MurderMystery.API.Features
 
         internal virtual void OnFirstSpawn(MMPlayer player)
         {
+            if (player.Role != MMRole.Spectator)
+            {
+                player.Player.AddItem(ItemType.ArmorCombat);
+            }
+
             player.Player.SendConsoleMessage($"You spawned as: {ColoredName} this round.", "white");
 
             player.Player.ShowHint($"\n\n\n\n\n\n{SpawnMsg}\n{SpawnInfoMsg}", 20);

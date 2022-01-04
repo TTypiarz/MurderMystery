@@ -1,5 +1,4 @@
-﻿using Exiled.API.Features;
-using InventorySystem.Items.Firearms;
+﻿using InventorySystem.Items.Firearms;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 
@@ -16,9 +15,9 @@ namespace MurderMystery.API.Roles
 
         internal override void OnFirstSpawn(MMPlayer player)
         {
-            Firearm gun = player.Player.AddItem(ItemType.GunRevolver).Base as Firearm;
-            gun.Status = new FirearmStatus(6, gun.Status.Flags, 553);
-            MMLog.Debug(gun.Status.Flags);
+            player.Player.AddItem(ItemType.KeycardNTFCommander);
+            (player.Player.AddItem(ItemType.GunRevolver).Base as Firearm).Status = new FirearmStatus(6, FirearmStatusFlags.MagazineInserted, 553);
+            player.Player.AddItem(ItemType.Medkit);
 
             base.OnFirstSpawn(player);
         }
