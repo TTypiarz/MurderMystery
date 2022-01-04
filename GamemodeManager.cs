@@ -6,6 +6,7 @@ using MEC;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using MurderMystery.Extensions;
+using MurderMystery.Patches;
 using System;
 using System.Collections.Generic;
 using Handlers = Exiled.Events.Handlers;
@@ -67,6 +68,8 @@ namespace MurderMystery
                                 Handlers.Server.RoundStarted += RoundStarted;
                                 Handlers.Server.RoundEnded += RoundEnded;
                                 Handlers.Server.RestartingRound += RestartingRound;
+
+                                MurderMystery.Singleton.Harmony.Patch(LateRoundStartPatch.Original, null, LateRoundStartPatch.Patch);
                             }
                             else
                             {
@@ -74,6 +77,8 @@ namespace MurderMystery
                                 Handlers.Server.RoundStarted -= RoundStarted;
                                 Handlers.Server.RoundEnded -= RoundEnded;
                                 Handlers.Server.RestartingRound -= RestartingRound;
+
+                                MurderMystery.Singleton.Harmony.Unpatch(LateRoundStartPatch.Original, HarmonyLib.HarmonyPatchType.Postfix);
                             }
 
                             PrimaryEnabled = enable;

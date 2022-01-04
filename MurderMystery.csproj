@@ -118,6 +118,7 @@
     <Compile Include="Extensions\PlayerExtensions.cs" />
     <Compile Include="MurderMystery.cs" />
     <Compile Include="Patches\LateRoundStartPatch.cs" />
+    <Compile Include="Patches\RespawnTimerPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

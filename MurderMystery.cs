@@ -32,15 +32,6 @@ namespace MurderMystery
 
             Config.Validate();
 
-            foreach (IPlugin<IConfig> plugin in Exiled.Loader.Loader.Plugins)
-            {
-                if (plugin.Name == "RespawnTimer")
-                {
-                    MMLog.Info(plugin.GetType().AssemblyQualifiedName);
-                    break;
-                }
-            }
-
             base.OnEnabled();
         }
 
