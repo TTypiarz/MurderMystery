@@ -58,6 +58,9 @@ namespace MurderMystery
                     Started = false;
                     WaitingPlayers = false;
                     FailedToStart = false;
+
+                    ServerConsole.FriendlyFire = GameCore.ConfigFile.ServerConfig.GetBool("friendly_fire");
+                    FriendlyFireConfig.PauseDetector = false;
                 }
             }
             else
@@ -130,6 +133,9 @@ namespace MurderMystery
                                 Handlers.Player.Dying += Dying;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
+
+                                ServerConsole.FriendlyFire = true;
+                                FriendlyFireConfig.PauseDetector = true;
                             }
                             else
                             {
