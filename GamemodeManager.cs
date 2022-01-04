@@ -231,7 +231,17 @@ namespace MurderMystery
             if (ev.Reason == Exiled.API.Enums.SpawnReason.RoundStart)
             {
                 ev.NewRole = RoleType.ClassD;
+
+                ev.Ammo.Clear();
+                ev.Items.Clear();
             }
+            /*else
+            {
+                if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                {
+                    player.Role = MMRole.Spectator;
+                }
+            }*/
         }
 
         private void Spawning(SpawningEventArgs ev)

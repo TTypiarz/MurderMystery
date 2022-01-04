@@ -32,15 +32,6 @@ namespace MurderMystery.API.Features
             player.Player.SendConsoleMessage($"You spawned as: {ColoredName} this round.", "white");
 
             player.Player.ShowHint($"\n\n\n\n\n\n{SpawnMsg}\n{SpawnInfoMsg}", 20);
-
-            player.Player.Ammo[ItemType.Ammo12gauge] = 0;
-            player.Player.Ammo[ItemType.Ammo44cal] = 0;
-            player.Player.Ammo[ItemType.Ammo556x45] = 0;
-            player.Player.Ammo[ItemType.Ammo762x39] = 0;
-            player.Player.Ammo[ItemType.Ammo9x19] = 0;
-            player.Player.Inventory.SendAmmoNextFrame = true;
-
-            player.Player.ClearInventory();
         }
         internal virtual void ChangingMMRole(MMPlayer player, CustomRole newRole) { }
         internal virtual void ChangedMMRole(MMPlayer player, CustomRole oldRole) { }
