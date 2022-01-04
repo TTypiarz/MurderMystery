@@ -359,7 +359,7 @@ namespace MurderMystery
                         if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated) && ply != spectated)
                         {
                             ply.Player.ShowHint($"\n\n\n\n\n\n\n\n<size=40>You are spectating: {spectated.Player.Nickname}\n" +
-                                $"{(spectated.CustomRole == null ? "They have no role." : $"They are: {spectated.CustomRole.ColoredName}")}</size>", 2);
+                                $"{(spectated.CustomRole == null ? "<b>They have no role.</b>" : $"<b>They are: {spectated.CustomRole.ColoredName}")}</size></b>", 2);
                         }
                     }
                 }
