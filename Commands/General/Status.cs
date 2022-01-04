@@ -24,7 +24,8 @@ namespace MurderMystery.Commands.General
                 $"Player Events enabled: {(gmm.PlayerEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"Gamemode Events enabled: {(gmm.GamemodeEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n\n" +
                 $"WaitingForPlayers: {(gmm.WaitingPlayers ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
-                $"Started: {(gmm.Started ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}";
+                $"Started: {(gmm.Started ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
+                $"Failed To Start: {(gmm.FailedToStart ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}";
 
             return true;
         }

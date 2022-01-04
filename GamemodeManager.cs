@@ -24,7 +24,13 @@ namespace MurderMystery
         public bool WaitingPlayers { get; private set; } = false;
         public bool Started { get; private set; } = false;
 
+        public bool FailedToStart { get; private set; } = false;
+
         public Random Rng { get; private set; } = new Random();
+        public CoroutineHandle[] GamemodeCoroutines { get; } = new CoroutineHandle[1]
+        {
+            default // [0] SpectatorText
+        };
 
         internal void ToggleGamemode(bool enable)
         {
@@ -47,8 +53,11 @@ namespace MurderMystery
                         RespawnTimerPatch.TogglePatch(false);
                     }
 
+                    Timing.KillCoroutines(GamemodeCoroutines);
+
                     Started = false;
                     WaitingPlayers = false;
+                    FailedToStart = false;
                 }
             }
             else
@@ -251,6 +260,8 @@ namespace MurderMystery
                 {
                     controller.NetworkStatus = 4;
                 }
+
+
             }
             catch (Exception e)
             {
@@ -262,6 +273,7 @@ namespace MurderMystery
                     MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
                     Round.Restart();
                 });
+                FailedToStart = true;
             }
         }
 
@@ -271,9 +283,12 @@ namespace MurderMystery
             {
                 MMLog.Debug("Primary function called.");
 
+                if (FailedToStart)
+                    return;
+
                 for (int i = 0; i < MMPlayer.List.Count; i++)
                 {
-                    if (MMPlayer.List[i].Player.IsOverwatchEnabled)
+                    if (MMPlayer.List[i].Player.IsOverwatchEnabled || MMPlayer.List[i].Player.Role == RoleType.Spectator)
                         MMPlayer.List[i].SetRoleSilently(MMRole.Spectator);
                 }
 
@@ -308,8 +323,10 @@ namespace MurderMystery
 
                 for (int i = 0; i < MMPlayer.List.Count; i++)
                 {
-                    MMPlayer.List[i].CustomRole.OnFirstSpawn(MMPlayer.List[i]);
+                    MMPlayer.List[i].CustomRole?.OnFirstSpawn(MMPlayer.List[i]);
                 }
+
+                GamemodeCoroutines[0] = Timing.RunCoroutine(SpectatorText());
             }
             catch (Exception e)
             {
@@ -321,6 +338,31 @@ namespace MurderMystery
                     MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
                     Round.Restart();
                 });
+                FailedToStart = true;
+            }
+        }
+        
+        private IEnumerator<float> SpectatorText()
+        {
+            MMLog.Debug("[GamemodeManager::SpectatorText]", "Primary function called.");
+
+            while (GamemodeEnabled)
+            {
+                yield return Timing.WaitForSeconds(1f);
+
+                for (int i = 0; i < MMPlayer.List.Count; i++)
+                {
+                    MMPlayer ply = MMPlayer.List[i];
+
+                    if (ply.Player.Role == RoleType.Spectator)
+                    {
+                        if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated))
+                        {
+                            ply.Player.ShowHint($"\n\n\n\n\n\n<size=40>You are spectating: {spectated.Player.Nickname}\n" +
+                                $"{(spectated.CustomRole == null ? "They have no role." : $"They are: {spectated.CustomRole.ColoredName}")}</size>", 2);
+                        }
+                    }
+                }
             }
         }
         #endregion

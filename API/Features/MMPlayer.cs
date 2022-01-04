@@ -63,6 +63,12 @@ namespace MurderMystery.API.Features
 
         public static bool Get(Player ply, out MMPlayer player)
         {
+            if (ply == null)
+            {
+                player = null;
+                return false;
+            }
+
             for (int i = 0; i < List.Count; i++)
             {
                 if (List[i].Player == ply)
@@ -74,6 +80,11 @@ namespace MurderMystery.API.Features
 
             player = null;
             return false;
+        }
+
+        public static bool Get(ReferenceHub ply, out MMPlayer player)
+        {
+            return Get(Player.Get(ply), out player);
         }
 
         internal void Verified()
