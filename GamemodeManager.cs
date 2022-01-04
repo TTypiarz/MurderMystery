@@ -3,6 +3,7 @@ using Exiled.API.Features;
 using Exiled.Events.EventArgs;
 using InventorySystem.Items.Firearms.Attachments;
 using MEC;
+using MurderMystery.API;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using MurderMystery.Extensions;
@@ -136,6 +137,7 @@ namespace MurderMystery
 
                                 ServerConsole.FriendlyFire = true;
                                 FriendlyFireConfig.PauseDetector = true;
+                                DependencyUtilities.HandleCedModV3(true);
                             }
                             else
                             {
@@ -144,6 +146,8 @@ namespace MurderMystery
                                 Handlers.Player.Dying -= Dying;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
+
+                                DependencyUtilities.HandleCedModV3(false);
                             }
 
                             GamemodeEnabled = enable;
