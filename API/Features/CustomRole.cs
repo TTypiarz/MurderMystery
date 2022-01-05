@@ -34,7 +34,8 @@ namespace MurderMystery.API.Features
                 player.Player.AddItem(ItemType.ArmorCombat);
             }
 
-            player.Player.SendConsoleMessage($"You spawned as: {ColoredName} this round.", "white");
+            // For some reason causes a NRE sometimes when CharacterClassManager tries to get a component. Will disable for now.
+            // player.Player.SendConsoleMessage($"You spawned as: {ColoredName} this round.", "white");
 
             player.Player.ShowHint($"\n\n\n\n\n\n{SpawnMsg}\n{SpawnInfoMsg}", 20);
         }

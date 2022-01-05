@@ -1,7 +1,10 @@
-﻿using InventorySystem.Items.Firearms;
+﻿using Exiled.API.Extensions;
+using InventorySystem.Items.Firearms;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using MurderMystery.API.Interfaces;
+using MurderMystery.Extensions;
+using System.Collections.Generic;
 
 namespace MurderMystery.API.Roles
 {
@@ -29,6 +32,13 @@ namespace MurderMystery.API.Roles
         internal override void OnFirstSpawn(MMPlayer player)
         {
             base.OnFirstSpawn(player);
+
+            List<MMPlayer> players = MMPlayer.List.GetRole(MMRole.Detective);
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                players[i].Player.SetPlayerInfoForTargetOnly(player.Player, ColoredName);
+            }
         }
     }
 }

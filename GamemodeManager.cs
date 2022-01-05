@@ -1,7 +1,12 @@
 ﻿using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using Exiled.Events.EventArgs;
+using Interactables.Interobjects;
+using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items.Firearms.Attachments;
+using InventorySystem.Items.Pickups;
+using MapGeneration.Distributors;
 using MEC;
 using MurderMystery.API;
 using MurderMystery.API.Enums;
@@ -9,6 +14,7 @@ using MurderMystery.API.Features;
 using MurderMystery.API.Interfaces;
 using MurderMystery.Extensions;
 using MurderMystery.Patches;
+using PlayerStatsSystem;
 using System;
 using System.Collections.Generic;
 using Handlers = Exiled.Events.Handlers;
@@ -50,10 +56,7 @@ namespace MurderMystery
                     ToggleEvent(MMEventType.Player, false);
                     ToggleEvent(MMEventType.Gamemode, false);
 
-                    if (RespawnTimerPatch.PatchEnabled)
-                    {
-                        RespawnTimerPatch.TogglePatch(false);
-                    }
+                    RespawnTimerPatch.TogglePatch(false);
 
                     Timing.KillCoroutines(GamemodeCoroutines);
 
@@ -136,12 +139,16 @@ namespace MurderMystery
                                 Handlers.Player.Spawning += Spawning;
                                 Handlers.Player.Dying += Dying;
                                 Handlers.Player.DroppingItem += DroppingItem;
+                                Handlers.Player.Shooting += Shooting;
+                                Handlers.Player.PickingUpItem += PickingUpItem;
+                                Handlers.Player.DroppingAmmo += DroppingAmmo;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
 
                                 ServerConsole.FriendlyFire = true;
                                 FriendlyFireConfig.PauseDetector = true;
                                 DependencyUtilities.HandleCedModV3(true);
+                                RespawnTimerPatch.TogglePatch(true);
                             }
                             else
                             {
@@ -149,10 +156,14 @@ namespace MurderMystery
                                 Handlers.Player.Spawning -= Spawning;
                                 Handlers.Player.Dying -= Dying;
                                 Handlers.Player.DroppingItem -= DroppingItem;
+                                Handlers.Player.Shooting -= Shooting;
+                                Handlers.Player.PickingUpItem -= PickingUpItem;
+                                Handlers.Player.DroppingAmmo -= DroppingAmmo;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
 
                                 DependencyUtilities.HandleCedModV3(false);
+                                RespawnTimerPatch.TogglePatch(false);
                             }
 
                             GamemodeEnabled = enable;
@@ -175,8 +186,6 @@ namespace MurderMystery
                 MMLog.Debug("Primary event called. Enabling player events...");
 
                 ToggleEvent(MMEventType.Player, true);
-
-                RespawnTimerPatch.TogglePatch(true);
 
                 WaitingPlayers = true;
             }
@@ -279,6 +288,13 @@ namespace MurderMystery
 
         private void EndingRound(EndingRoundEventArgs ev)
         {
+            if (Round.ElapsedTime.TotalSeconds < 5)
+            {
+                ev.IsAllowed = false;
+                ev.IsRoundEnded = false;
+                return;
+            }
+
             ev.IsAllowed = false;
             ev.IsRoundEnded = false;
 
@@ -317,8 +333,18 @@ namespace MurderMystery
         {
             if (MMPlayer.Get(ev.Target, out MMPlayer ply))
             {
+                if (MMPlayer.Get(ev.Killer, out MMPlayer killer))
+                {
+                    if (ply.Role == MMRole.Innocent && killer.Role == MMRole.Detective)
+                    {
+                        killer.Player.ReferenceHub.playerStats.DealDamage(new CustomReasonDamageHandler("Shot an innocent player.", 1000000, "L O L"));
+                    }
+                }
+
                 ply.Role = MMRole.Spectator;
             }
+
+            ev.Target.CustomInfo = string.Empty;
         }
 
         private void DroppingItem(DroppingItemEventArgs ev)
@@ -327,11 +353,70 @@ namespace MurderMystery
                 ev.IsAllowed = false;
         }
 
+        private void DroppingAmmo(DroppingAmmoEventArgs ev)
+        {
+            ev.IsAllowed = false;
+            ev.Amount = 0;
+        }
+
+        private void PickingUpItem(PickingUpItemEventArgs ev)
+        {
+            if (MMPlayer.Get(ev.Player, out MMPlayer player))
+            {
+                if (CustomItemPool.ProtectedItemIds.Contains(ev.Pickup.Serial))
+                {
+                    switch (ev.Pickup.Type)
+                    {
+                        case ItemType.GunRevolver:
+                            if (player.Role == MMRole.Innocent)
+                            {
+                                ev.IsAllowed = true;
+                                player.Role = MMRole.Detective;
+                                return;
+                            }
+                            else
+                            {
+                                ev.IsAllowed = false;
+                                return;
+                            }
+
+                        default:
+                            ev.IsAllowed = false;
+                            return;
+                    }
+                }
+            }
+        }
+
+        private void Shooting(ShootingEventArgs ev)
+        {
+            if (MMPlayer.Get(Player.Get(ev.TargetNetId), out MMPlayer target) && MMPlayer.Get(ev.Shooter, out MMPlayer shooter))
+            {
+                if (target.Role == shooter.Role)
+                {
+                    shooter.Player.ShowHint("You cannot shoot your teammates.", 3);
+                    ev.IsAllowed = false;
+                }
+            }
+        }
+
+        //
+        // TO DO:
+        // - Make sure players can see their teammates. (Murderers and detectives only)
+        //
+
         #endregion
 
         #region Primary Functions
         private void StartGamemode()
         {
+            const DoorLockReason fullLock =
+                DoorLockReason.AdminCommand
+                | DoorLockReason.DecontLockdown
+                | DoorLockReason.SpecialDoorFeature
+                | DoorLockReason.NoPower
+                | DoorLockReason.Lockdown2176;
+
             try
             {
                 MMLog.Debug("Primary function called.");
@@ -341,6 +426,91 @@ namespace MurderMystery
                 {
                     controller.NetworkStatus = 4;
                 }
+
+                foreach (Door door in Map.Doors)
+                {
+                    if (door.Base is CheckpointDoor chkDoor)
+                    {
+                        foreach (DoorVariant subDoor in chkDoor._subDoors)
+                        {
+                            subDoor.NetworkTargetState = false;
+                            subDoor.NetworkActiveLocks = (ushort)fullLock;
+                            subDoor.UsedBy106 = false;
+                        }
+
+                        chkDoor.NetworkTargetState = false;
+                        chkDoor.NetworkActiveLocks = (ushort)fullLock;
+                        chkDoor.UsedBy106 = false;
+                    }
+                    else if (door.RequiredPermissions.RequiredPermissions > 0)
+                    {
+                        door.Base.NetworkTargetState = true;
+                        door.Base.NetworkActiveLocks = (ushort)fullLock;
+                    }
+                }
+
+                foreach (Lift lift in Map.Lifts)
+                {
+                    switch (lift.Type())
+                    {
+                        case Exiled.API.Enums.ElevatorType.LczA:
+                        case Exiled.API.Enums.ElevatorType.LczB:
+                            lift.Network_locked = true;
+                            continue;
+                    }
+                }
+
+                foreach (Locker locker in UnityEngine.Object.FindObjectsOfType<Locker>())
+                {
+                    foreach (LockerLoot loot in locker.Loot)
+                    {
+                        loot.RemainingUses = 0;
+                    }
+
+                    foreach (LockerChamber chamber in locker.Chambers)
+                    {
+                        HashSet<ItemPickupBase> content = new HashSet<ItemPickupBase>();
+                        foreach (ItemPickupBase item in chamber._content)
+                        {
+                            HashSet<ItemPickupBase> tempList = new HashSet<ItemPickupBase>();
+
+                            if (!MurderMystery.AllowedItems.Contains(item.Info.ItemId))
+                            {
+                                item.DestroySelf();
+                                content.Add(item);
+                            }
+                        }
+                        HashSet<ItemPickupBase> tobeSpawned = new HashSet<ItemPickupBase>();
+                        foreach (ItemPickupBase item in chamber._toBeSpawned)
+                        {
+                            if (!MurderMystery.AllowedItems.Contains(item.Info.ItemId))
+                            {
+                                item.DestroySelf();
+                                tobeSpawned.Add(item);
+                            }
+                        }
+
+                        foreach (ItemPickupBase item in content)
+                        {
+                            chamber._content.Remove(item);
+                        }
+                        foreach (ItemPickupBase item in tobeSpawned)
+                        {
+                            chamber._toBeSpawned.Remove(item);
+                        }
+                    }
+                }
+
+                foreach (Pickup item in Map.Pickups)
+                {
+                    item.Destroy();
+                }
+
+                try
+                {
+                    UnityEngine.Object.FindObjectOfType<Recontainer079>()._alreadyRecontained = true;
+                }
+                catch { }
 
                 Timing.CallDelayed(MurderMystery.Singleton.Config.EquipmentDelay, () =>
                 {
@@ -368,7 +538,7 @@ namespace MurderMystery
                 Timing.CallDelayed(10, () =>
                 {
                     MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                    Round.Restart();
+                    Round.Restart(false);
                 });
                 FailedToStart = true;
             }
@@ -420,7 +590,7 @@ namespace MurderMystery
 
                 for (int i = 0; i < MMPlayer.List.Count; i++)
                 {
-                    MMPlayer.List[i].CustomRole?.OnFirstSpawn(MMPlayer.List[i]);
+                    MMPlayer.List[i]?.CustomRole?.OnFirstSpawn(MMPlayer.List[i]);
                 }
 
                 GamemodeCoroutines[0] = Timing.RunCoroutine(SpectatorText());
@@ -433,7 +603,7 @@ namespace MurderMystery
                 Timing.CallDelayed(10, () =>
                 {
                     MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                    Round.Restart();
+                    Round.Restart(false);
                 });
                 FailedToStart = true;
             }

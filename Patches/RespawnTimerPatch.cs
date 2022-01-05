@@ -12,13 +12,18 @@ namespace MurderMystery.Patches
 
         private static void Postfix()
         {
-            Timing.KillCoroutines(RespawnTimer.RespawnTimer.Singleton.handler.timerCoroutine);
-            RespawnTimer.RespawnTimer.Singleton.handler.timerCoroutine = default;
-            MMLog.Info("Killed RespawnTimer coroutine.");
+            if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
+            {
+                Timing.KillCoroutines(RespawnTimer.RespawnTimer.Singleton.handler.timerCoroutine);
+                RespawnTimer.RespawnTimer.Singleton.handler.timerCoroutine = default;
+                MMLog.Info("Killed RespawnTimer coroutine.");
+            }
         }
 
         internal static void TogglePatch(bool enable)
         {
+            MMLog.Debug($"TogglePatch called by: {MMUtilities.GetCallerString()}");
+
             if (!DependencyChecker.CheckRespawnTimer())
                 return;
 
