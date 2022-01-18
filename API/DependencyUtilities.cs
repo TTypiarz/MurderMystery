@@ -1,4 +1,7 @@
-﻿namespace MurderMystery.API
+﻿using Exiled.API.Features;
+using MurderMystery.API.Features;
+
+namespace MurderMystery.API
 {
     internal static class DependencyUtilities
     {
@@ -12,14 +15,8 @@
 
         private static void InternalHandleCedModV3(bool enable)
         {
-            if (enable)
-            {
-                CedMod.FriendlyFireAutoban.AdminDisabled = true;
-            }
-            else
-            {
-                CedMod.FriendlyFireAutoban.AdminDisabled = false;
-            }
+            CedMod.FriendlyFireAutoban.AdminDisabled = enable;
+            MMLog.Debug($"{(enable ? "Disabled" : "Enabled")} CedMod autoban.");
         }
     }
 }

@@ -1,26 +1,24 @@
 ﻿using CommandSystem;
-using RemoteAdmin;
 using System;
 
 namespace MurderMystery.Commands
 {
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     [CommandHandler(typeof(GameConsoleCommandHandler))]
-    public class GeneralCmds : ParentCommand
+    [CommandHandler(typeof(ClientCommandHandler))]
+    public class DebugCmds : ParentCommand
     {
-        public GeneralCmds() => LoadGeneratedCommands();
+        public DebugCmds() => LoadGeneratedCommands();
 
-        public override string Command => "murdermystery";
+        public override string Command => "mmd";
 
-        public override string[] Aliases => new string[] { "mm" };
+        public override string[] Aliases => new string[] { "murdermyserydebug", "mmdebug" };
 
-        public override string Description => "General murder mystery commands.";
+        public override string Description => "Debug commands for murder mystery.";
 
         public override void LoadGeneratedCommands()
         {
-            RegisterCommand(new General.Enable());
-            RegisterCommand(new General.Disable());
-            RegisterCommand(new General.ShowRoles());
+            RegisterCommand(new Debug.Status());
         }
 
         protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)

@@ -37,7 +37,7 @@ namespace MurderMystery.API.Roles
 
             for (int i = 0; i < players.Count; i++)
             {
-                players[i].Player.SetPlayerInfoForTargetOnly(player.Player, ColoredName);
+                players[i].Player.SetPlayerInfoForTargetOnly(player.Player, Name);
             }
         }
     }

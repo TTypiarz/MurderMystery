@@ -43,7 +43,7 @@ namespace MurderMystery.Commands.General
                     Timing.CallDelayed(10, () =>
                     {
                         MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                        Round.Restart();
+                        Round.Restart(false);
                     });
                     response = "Murder Mystery gamemode disabled. Round restart in 10 seconds.";
                     return true;

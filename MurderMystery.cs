@@ -21,12 +21,12 @@ namespace MurderMystery
         internal const bool InternalDebugVersion = true;
 
         public static ItemType[] AllowedItems => new ItemType[]
-{
+        {
             ItemType.Painkillers,
             ItemType.Medkit,
             ItemType.Adrenaline,
             ItemType.ArmorLight
-};
+        };
 
         public GamemodeManager GamemodeManager { get; private set; }
         public Harmony Harmony { get; private set; }

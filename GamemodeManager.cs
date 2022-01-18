@@ -33,11 +33,15 @@ namespace MurderMystery
         public bool Started { get; private set; } = false;
 
         public bool FailedToStart { get; private set; } = false;
+        public float TimeUntilEnd { get; set; } = 0f;
+
+        public bool Murderers939Vision { get; private set; } = false;
 
         public Random Rng { get; private set; } = new Random();
-        public CoroutineHandle[] GamemodeCoroutines { get; } = new CoroutineHandle[1]
+        public CoroutineHandle[] GamemodeCoroutines { get; } = new CoroutineHandle[2]
         {
-            default // [0] SpectatorText
+            default, // [0] SpectatorText
+            default  // [1] RoundTimer
         };
 
         internal void ToggleGamemode(bool enable)
@@ -63,6 +67,8 @@ namespace MurderMystery
                     Started = false;
                     WaitingPlayers = false;
                     FailedToStart = false;
+                    TimeUntilEnd = -1f;
+                    Murderers939Vision = false;
 
                     ServerConsole.FriendlyFire = GameCore.ConfigFile.ServerConfig.GetBool("friendly_fire");
                     FriendlyFireConfig.PauseDetector = false;
@@ -142,6 +148,7 @@ namespace MurderMystery
                                 Handlers.Player.Shooting += Shooting;
                                 Handlers.Player.PickingUpItem += PickingUpItem;
                                 Handlers.Player.DroppingAmmo += DroppingAmmo;
+                                Handlers.Player.ReloadingWeapon += ReloadingWeapon;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
 
@@ -159,6 +166,7 @@ namespace MurderMystery
                                 Handlers.Player.Shooting -= Shooting;
                                 Handlers.Player.PickingUpItem -= PickingUpItem;
                                 Handlers.Player.DroppingAmmo -= DroppingAmmo;
+                                Handlers.Player.ReloadingWeapon -= ReloadingWeapon;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
 
@@ -262,8 +270,29 @@ namespace MurderMystery
             {
                 ev.NewRole = RoleType.ClassD;
 
-                ev.Ammo.Clear();
+                ev.Ammo[ItemType.Ammo9x19] = 100;
+                ev.Ammo[ItemType.Ammo556x45] = 100;
                 ev.Items.Clear();
+            }
+            else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin)
+            {
+                if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                {
+                    ev.NewRole = RoleType.ClassD;
+                    player.SetRoleSilently(MMRole.Innocent);
+                    Timing.CallDelayed(1f, () =>
+                    {
+                        player.CustomRole?.OnFirstSpawn(player);
+                    });
+
+                    ev.Ammo[ItemType.Ammo9x19] = 100;
+                    ev.Ammo[ItemType.Ammo44cal] = 100;
+                    ev.Items.Clear();
+                }
+                else
+                {
+                    ev.NewRole = RoleType.Spectator;
+                }
             }
             /*else
             {
@@ -288,37 +317,36 @@ namespace MurderMystery
 
         private void EndingRound(EndingRoundEventArgs ev)
         {
-            if (Round.ElapsedTime.TotalSeconds < 5)
-            {
-                ev.IsAllowed = false;
-                ev.IsRoundEnded = false;
-                return;
-            }
-
             ev.IsAllowed = false;
             ev.IsRoundEnded = false;
+
+            if (Round.ElapsedTime.TotalSeconds < 5)
+                return;
 
             int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
             int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
 
             if (innocents == 0 && murderers > 0)
             {
-                Map.ClearBroadcasts();
-                Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>");
+                Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
                 goto Allow;
             }
 
             if (innocents > 0 && murderers == 0)
             {
-                Map.ClearBroadcasts();
-                Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>");
+                Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
                 goto Allow;
             }
 
             if (innocents == 0 && murderers == 0)
             {
-                Map.ClearBroadcasts();
-                Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>");
+                Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>", Broadcast.BroadcastFlags.Normal, true);
+                goto Allow;
+            }
+
+            if (TimeUntilEnd <= 0f)
+            {
+                Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>Murderers have run out of time, and lost.</size>", Broadcast.BroadcastFlags.Normal, true);
                 goto Allow;
             }
 
@@ -400,10 +428,10 @@ namespace MurderMystery
             }
         }
 
-        //
-        // TO DO:
-        // - Make sure players can see their teammates. (Murderers and detectives only)
-        //
+        private void ReloadingWeapon(ReloadingWeaponEventArgs ev)
+        {
+            ev.Player.SetAmmo(ev.Firearm.AmmoType, 100);
+        }
 
         #endregion
 
@@ -594,6 +622,12 @@ namespace MurderMystery
                 }
 
                 GamemodeCoroutines[0] = Timing.RunCoroutine(SpectatorText());
+
+                if (MurderMystery.Singleton.Config.RoundTime != 0)
+                {
+                    TimeUntilEnd = MurderMystery.Singleton.Config.RoundTime;
+                    GamemodeCoroutines[1] = Timing.RunCoroutine(RoundTimer());
+                }
             }
             catch (Exception e)
             {
@@ -629,6 +663,30 @@ namespace MurderMystery
                                 $"{(spectated.CustomRole == null ? "<b>They have no role.</b>" : $"<b>They are: {spectated.CustomRole.ColoredName}")}</size></b>", 2);
                         }
                     }
+                }
+            }
+        }
+
+        private IEnumerator<float> RoundTimer()
+        {
+            Config cfg = MurderMystery.Singleton.Config;
+
+            while (GamemodeEnabled)
+            {
+                yield return Timing.WaitForOneFrame;
+                TimeUntilEnd -= Timing.DeltaTime;
+
+                if (!Murderers939Vision && TimeUntilEnd <= cfg.Murderers939VisionTime && cfg.Murderers939VisionTime != 0)
+                {
+                    List<MMPlayer> players = MMPlayer.List.GetRole(MMRole.Murderer);
+
+                    for (int i = 0; i < players.Count; i++)
+                    {
+                        players[i].Player.EnableEffect<CustomPlayerEffects.Visuals939>();
+                        players[i].Player.Broadcast(5, "<size=30>You can now see players through walls.</size>");
+                    }
+
+                    Murderers939Vision = true;
                 }
             }
         }
