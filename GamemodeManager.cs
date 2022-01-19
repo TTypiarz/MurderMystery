@@ -153,6 +153,7 @@ namespace MurderMystery
                                 Handlers.Player.ChangingRole += ChangingRole;
                                 Handlers.Player.Spawning += Spawning;
                                 Handlers.Player.Dying += Dying;
+                                Handlers.Player.Died += Died;
                                 Handlers.Player.DroppingItem += DroppingItem;
                                 Handlers.Player.Shooting += Shooting;
                                 Handlers.Player.PickingUpItem += PickingUpItem;
@@ -172,6 +173,7 @@ namespace MurderMystery
                                 Handlers.Player.ChangingRole -= ChangingRole;
                                 Handlers.Player.Spawning -= Spawning;
                                 Handlers.Player.Dying -= Dying;
+                                Handlers.Player.Died -= Died;
                                 Handlers.Player.DroppingItem -= DroppingItem;
                                 Handlers.Player.Shooting -= Shooting;
                                 Handlers.Player.PickingUpItem -= PickingUpItem;
@@ -385,12 +387,18 @@ namespace MurderMystery
                         killer.Player.ReferenceHub.playerStats.DealDamage(new CustomReasonDamageHandler("Shot an innocent player.", 1000000, "L O L"));
                     }
                 }
-
-                ply.Role = MMRole.Spectator;
             }
 
             ev.Target.CustomInfo = string.Empty;
             ev.Target.Ammo.Clear();
+        }
+
+        private void Died(DiedEventArgs ev)
+        {
+            if (MMPlayer.Get(ev.Target, out MMPlayer player))
+            {
+                player.Role = MMRole.Spectator;
+            }
         }
 
         private void DroppingItem(DroppingItemEventArgs ev)

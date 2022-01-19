@@ -20,6 +20,7 @@ namespace MurderMystery.Commands
         {
             RegisterCommand(new Debug.Status());
             RegisterCommand(new Debug.GiveEquipment());
+            RegisterCommand(new Debug.Info());
         }
 
         protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)
