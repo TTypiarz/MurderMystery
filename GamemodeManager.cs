@@ -46,39 +46,46 @@ namespace MurderMystery
 
         internal void ToggleGamemode(bool enable)
         {
-            if (enable ^ PrimaryEnabled)
+            try
             {
-                MMLog.Debug($"{(enable ? "Enabling" : "Disabling")} the murder mystery gamemode.");
-
-                if (enable)
+                if (enable ^ PrimaryEnabled)
                 {
-                    ToggleEvent(MMEventType.Primary, true);
+                    MMLog.Debug($"{(enable ? "Enabling" : "Disabling")} the murder mystery gamemode.");
+
+                    if (enable)
+                    {
+                        ToggleEvent(MMEventType.Primary, true);
+                    }
+                    else
+                    {
+                        ToggleEvent(MMEventType.Primary, false);
+                        ToggleEvent(MMEventType.Player, false);
+                        ToggleEvent(MMEventType.Gamemode, false);
+
+                        RespawnTimerPatch.TogglePatch(false);
+
+                        Timing.KillCoroutines(GamemodeCoroutines);
+
+                        Started = false;
+                        WaitingPlayers = false;
+                        FailedToStart = false;
+                        TimeUntilEnd = -1f;
+                        Murderers939Vision = false;
+
+                        ServerConsole.FriendlyFire = GameCore.ConfigFile.ServerConfig.GetBool("friendly_fire");
+                        FriendlyFireConfig.PauseDetector = false;
+
+                        CustomItemPool.ProtectedItemIds.Clear();
+                    }
                 }
                 else
                 {
-                    ToggleEvent(MMEventType.Primary, false);
-                    ToggleEvent(MMEventType.Player, false);
-                    ToggleEvent(MMEventType.Gamemode, false);
-
-                    RespawnTimerPatch.TogglePatch(false);
-
-                    Timing.KillCoroutines(GamemodeCoroutines);
-
-                    Started = false;
-                    WaitingPlayers = false;
-                    FailedToStart = false;
-                    TimeUntilEnd = -1f;
-                    Murderers939Vision = false;
-
-                    ServerConsole.FriendlyFire = GameCore.ConfigFile.ServerConfig.GetBool("friendly_fire");
-                    FriendlyFireConfig.PauseDetector = false;
-
-                    CustomItemPool.ProtectedItemIds.Clear();
+                    MMLog.Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {MMUtilities.GetCallerString()}");
                 }
             }
-            else
+            catch (Exception e)
             {
-                MMLog.Debug($"\nCall invalid: {(enable ? "Enabling" : "Disabling")}\nCaller: {MMUtilities.GetCallerString()}");
+                MMLog.Error($"FATAL ERROR:\n{e}");
             }
         }
         internal void ToggleEvent(MMEventType eventType, bool enable)
@@ -98,6 +105,7 @@ namespace MurderMystery
                                 Handlers.Server.RoundStarted += RoundStarted;
                                 Handlers.Server.RoundEnded += RoundEnded;
                                 Handlers.Server.RestartingRound += RestartingRound;
+                                Handlers.Map.SpawningItem += SpawningItem;
 
                                 MurderMystery.Singleton.Harmony.Patch(LateRoundStartPatch.Original, null, LateRoundStartPatch.Patch);
                                 MurderMystery.Singleton.Harmony.Patch(RoundSummaryPatch.Original, RoundSummaryPatch.Patch);
@@ -108,6 +116,7 @@ namespace MurderMystery
                                 Handlers.Server.RoundStarted -= RoundStarted;
                                 Handlers.Server.RoundEnded -= RoundEnded;
                                 Handlers.Server.RestartingRound -= RestartingRound;
+                                Handlers.Map.SpawningItem -= SpawningItem;
 
                                 MurderMystery.Singleton.Harmony.Unpatch(LateRoundStartPatch.Original, HarmonyLib.HarmonyPatchType.Postfix);
                                 MurderMystery.Singleton.Harmony.Unpatch(RoundSummaryPatch.Original, HarmonyLib.HarmonyPatchType.Prefix);
@@ -149,6 +158,7 @@ namespace MurderMystery
                                 Handlers.Player.PickingUpItem += PickingUpItem;
                                 Handlers.Player.DroppingAmmo += DroppingAmmo;
                                 Handlers.Player.ReloadingWeapon += ReloadingWeapon;
+                                Handlers.Player.SpawningRagdoll += SpawningRagdoll;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
 
@@ -167,6 +177,7 @@ namespace MurderMystery
                                 Handlers.Player.PickingUpItem -= PickingUpItem;
                                 Handlers.Player.DroppingAmmo -= DroppingAmmo;
                                 Handlers.Player.ReloadingWeapon -= ReloadingWeapon;
+                                Handlers.Player.SpawningRagdoll -= SpawningRagdoll;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
 
@@ -233,6 +244,12 @@ namespace MurderMystery
             }
         }
 
+        private void SpawningItem(SpawningItemEventArgs ev)
+        {
+            if (!MurderMystery.AllowedItems.Contains(ev.Pickup.Type))
+                ev.IsAllowed = false;
+        }
+
         #endregion
 
         #region Player Events
@@ -270,8 +287,8 @@ namespace MurderMystery
             {
                 ev.NewRole = RoleType.ClassD;
 
-                ev.Ammo[ItemType.Ammo9x19] = 100;
-                ev.Ammo[ItemType.Ammo556x45] = 100;
+                //ev.Ammo[ItemType.Ammo9x19] = 30;
+                //ev.Ammo[ItemType.Ammo44cal] = 18;
                 ev.Items.Clear();
             }
             else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin)
@@ -285,8 +302,8 @@ namespace MurderMystery
                         player.CustomRole?.OnFirstSpawn(player);
                     });
 
-                    ev.Ammo[ItemType.Ammo9x19] = 100;
-                    ev.Ammo[ItemType.Ammo44cal] = 100;
+                    //ev.Ammo[ItemType.Ammo9x19] = 30;
+                    //ev.Ammo[ItemType.Ammo44cal] = 18;
                     ev.Items.Clear();
                 }
                 else
@@ -344,7 +361,7 @@ namespace MurderMystery
                 goto Allow;
             }
 
-            if (TimeUntilEnd <= 0f)
+            if (GamemodeCoroutines[1].IsRunning && TimeUntilEnd <= 0f)
             {
                 Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>Murderers have run out of time, and lost.</size>", Broadcast.BroadcastFlags.Normal, true);
                 goto Allow;
@@ -373,6 +390,7 @@ namespace MurderMystery
             }
 
             ev.Target.CustomInfo = string.Empty;
+            ev.Target.Ammo.Clear();
         }
 
         private void DroppingItem(DroppingItemEventArgs ev)
@@ -430,7 +448,25 @@ namespace MurderMystery
 
         private void ReloadingWeapon(ReloadingWeaponEventArgs ev)
         {
-            ev.Player.SetAmmo(ev.Firearm.AmmoType, 100);
+            ev.Player.SetAmmo(ev.Firearm.AmmoType, ev.Firearm.MaxAmmo);
+        }
+
+        private void SpawningRagdoll(SpawningRagdollEventArgs ev)
+        {
+            if (MMPlayer.Get(ev.Owner, out MMPlayer player))
+            {
+                if (player.Role == MMRole.None || player.Role == MMRole.Spectator)
+                {
+                    ev.IsAllowed = false;
+                    return;
+                }
+
+                ev.Nickname += $" [{player.CustomRole.ColoredName}]";
+            }
+            else
+            {
+                ev.IsAllowed = false;
+            }
         }
 
         #endregion
@@ -488,51 +524,15 @@ namespace MurderMystery
                     }
                 }
 
-                foreach (Locker locker in UnityEngine.Object.FindObjectsOfType<Locker>())
-                {
-                    foreach (LockerLoot loot in locker.Loot)
-                    {
-                        loot.RemainingUses = 0;
-                    }
-
-                    foreach (LockerChamber chamber in locker.Chambers)
-                    {
-                        HashSet<ItemPickupBase> content = new HashSet<ItemPickupBase>();
-                        foreach (ItemPickupBase item in chamber._content)
-                        {
-                            HashSet<ItemPickupBase> tempList = new HashSet<ItemPickupBase>();
-
-                            if (!MurderMystery.AllowedItems.Contains(item.Info.ItemId))
-                            {
-                                item.DestroySelf();
-                                content.Add(item);
-                            }
-                        }
-                        HashSet<ItemPickupBase> tobeSpawned = new HashSet<ItemPickupBase>();
-                        foreach (ItemPickupBase item in chamber._toBeSpawned)
-                        {
-                            if (!MurderMystery.AllowedItems.Contains(item.Info.ItemId))
-                            {
-                                item.DestroySelf();
-                                tobeSpawned.Add(item);
-                            }
-                        }
-
-                        foreach (ItemPickupBase item in content)
-                        {
-                            chamber._content.Remove(item);
-                        }
-                        foreach (ItemPickupBase item in tobeSpawned)
-                        {
-                            chamber._toBeSpawned.Remove(item);
-                        }
-                    }
-                }
-
                 foreach (Pickup item in Map.Pickups)
                 {
-                    item.Destroy();
+                    if (!MurderMystery.AllowedItems.Contains(item.Type))
+                    {
+                        item.Destroy();
+
+                    }
                 }
+
 
                 try
                 {
@@ -561,8 +561,7 @@ namespace MurderMystery
             catch (Exception e)
             {
                 MMLog.Error($"FATAL ERROR:\n{e}");
-                Map.ClearBroadcasts();
-                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>");
+                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>", Broadcast.BroadcastFlags.Normal, true);
                 Timing.CallDelayed(10, () =>
                 {
                     MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);

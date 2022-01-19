@@ -101,6 +101,7 @@
     <Compile Include="API\DependencyChecker.cs" />
     <Compile Include="API\DependencyUtilities.cs" />
     <Compile Include="API\Enums\MMEventType.cs" />
+    <Compile Include="API\Enums\MMItem.cs" />
     <Compile Include="API\Enums\MMPerm.cs" />
     <Compile Include="API\Enums\MMRole.cs" />
     <Compile Include="API\Features\CustomItemPool.cs" />
@@ -114,6 +115,8 @@
     <Compile Include="API\Roles\Murderer.cs" />
     <Compile Include="API\Roles\Spectator.cs" />
     <Compile Include="Commands\DebugCmds.cs" />
+    <Compile Include="Commands\Debug\GiveEquipment.cs" />
+    <Compile Include="Commands\Debug\Info.cs" />
     <Compile Include="Commands\GeneralCmds.cs" />
     <Compile Include="Commands\General\Disable.cs" />
     <Compile Include="Commands\General\Enable.cs" />
@@ -134,5 +137,6 @@
     <None Include="packages.config" />
     <None Include="README.md" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

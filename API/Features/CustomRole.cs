@@ -1,4 +1,5 @@
-﻿using MurderMystery.API.Enums;
+﻿using MEC;
+using MurderMystery.API.Enums;
 using MurderMystery.API.Roles;
 using System.Collections.Generic;
 
@@ -31,13 +32,20 @@ namespace MurderMystery.API.Features
         {
             if (player.Role != MMRole.Spectator)
             {
-                player.Player.AddItem(ItemType.ArmorCombat);
+                try
+                {
+                    player.Player.AddItem(ItemType.ArmorCombat);
+                }
+                catch { }
             }
 
-            // For some reason causes a NRE sometimes when CharacterClassManager tries to get a component. Will disable for now.
-            // player.Player.SendConsoleMessage($"You spawned as: {ColoredName} this round.", "white");
+            player.Player.ReferenceHub.gameConsoleTransmission.SendToClient(player.Player.Connection, $"You have spawned as:\n<size=70>{ColoredName}</size>", "white");
 
-            player.Player.ShowHint($"\n\n\n\n\n\n{SpawnMsg}\n{SpawnInfoMsg}", 20);
+            try
+            {
+                player.Player.ShowHint($"\n\n\n\n\n\n{SpawnMsg}\n{SpawnInfoMsg}", 20);
+            }
+            catch { } // Catch nullref in exiled postfix patch.
         }
         internal virtual void ChangingMMRole(MMPlayer player, CustomRole newRole) { }
         internal virtual void ChangedMMRole(MMPlayer player, CustomRole oldRole) { }

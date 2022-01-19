@@ -1,8 +1,6 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
-using Exiled.API.Interfaces;
 using HarmonyLib;
-using MurderMystery.API.Features;
 using System;
 
 namespace MurderMystery
@@ -14,11 +12,11 @@ namespace MurderMystery
         public override string Prefix => "murder_mystery";
         public override PluginPriority Priority => PluginPriority.Default;
         public override Version RequiredExiledVersion => new Version(3, 0, 0);
-        public override Version Version => new Version(1, 0, 0);
+        public override Version Version => new Version(1, 0, 1);
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;
-        internal const bool InternalDebugVersion = true;
+        internal const bool InternalDebugVersion = false;
 
         public static ItemType[] AllowedItems => new ItemType[]
         {
