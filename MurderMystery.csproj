@@ -101,7 +101,6 @@
     <Compile Include="API\DependencyChecker.cs" />
     <Compile Include="API\DependencyUtilities.cs" />
     <Compile Include="API\Enums\MMEventType.cs" />
-    <Compile Include="API\Enums\MMItem.cs" />
     <Compile Include="API\Enums\MMPerm.cs" />
     <Compile Include="API\Enums\MMRole.cs" />
     <Compile Include="API\Features\CustomItemPool.cs" />
