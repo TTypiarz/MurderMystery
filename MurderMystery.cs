@@ -16,7 +16,7 @@ namespace MurderMystery
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;
-        internal const bool InternalDebugVersion = true;
+        internal const bool InternalDebugVersion = false;
 
         public static ItemType[] AllowedItems => new ItemType[]
         {
