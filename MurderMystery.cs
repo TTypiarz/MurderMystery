@@ -1,6 +1,7 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
+using MurderMystery.Patches;
 using System;
 
 namespace MurderMystery
@@ -12,11 +13,12 @@ namespace MurderMystery
         public override string Prefix => "murder_mystery";
         public override PluginPriority Priority => PluginPriority.Default;
         public override Version RequiredExiledVersion => new Version(3, 0, 0);
-        public override Version Version => new Version(1, 0, 1);
+        public override Version Version => new Version(1, 0, 2);
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;
         internal const bool InternalDebugVersion = false;
+        internal const bool InternalDebugSingleplayer = false;
 
         public static ItemType[] AllowedItems => new ItemType[]
         {
@@ -34,6 +36,10 @@ namespace MurderMystery
             Singleton = this;
             GamemodeManager = new GamemodeManager();
             Harmony = new Harmony("zereth.plugins.murdermystery");
+
+            Harmony.Patch(LateRoundStartPatch.Original, null, LateRoundStartPatch.Patch);
+            Harmony.Patch(RoundSummaryPatch.Original, RoundSummaryPatch.Patch);
+            RespawnTimerPatch.EnablePatch();
 
             Config.Validate();
 

@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Features;
+using System;
 
 namespace MurderMystery.API.Features
 {
@@ -23,6 +24,10 @@ namespace MurderMystery.API.Features
         public static void Error(object message)
         {
             Log.Error($"{MMUtilities.GetCallerString()} {message}");
+        }
+        public static void Error(Exception exception, object message)
+        {
+            Log.Error($"{MMUtilities.GetCallerString()} {message}\n{exception}");
         }
     }
 }

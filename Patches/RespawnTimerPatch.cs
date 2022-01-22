@@ -20,33 +20,21 @@ namespace MurderMystery.Patches
             }
         }
 
-        internal static void TogglePatch(bool enable)
+        internal static void EnablePatch()
         {
-            MMLog.Debug($"TogglePatch called by: {MMUtilities.GetCallerString()}");
-
             if (!DependencyChecker.CheckRespawnTimer())
                 return;
 
-            InternalTogglePatch(enable);
+            InternalEnablePatch();
         }
 
-        private static void InternalTogglePatch(bool enable)
+        private static void InternalEnablePatch()
         {
             MethodInfo original = typeof(RespawnTimer.Handler).GetMethod("OnRoundStart", BindingFlags.Instance | BindingFlags.NonPublic);
+            HarmonyMethod patch = new HarmonyMethod(typeof(RespawnTimerPatch).GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic));
+            MurderMystery.Singleton.Harmony.Patch(original, null, patch);
 
-            if (enable)
-            {
-                HarmonyMethod patch = new HarmonyMethod(typeof(RespawnTimerPatch).GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic));
-                MurderMystery.Singleton.Harmony.Patch(original, null, patch);
-
-                PatchEnabled = true;
-            }
-            else
-            {
-                MurderMystery.Singleton.Harmony.Unpatch(original, HarmonyPatchType.Postfix);
-
-                PatchEnabled = false;
-            }
+            PatchEnabled = true;
         }
     }
 }

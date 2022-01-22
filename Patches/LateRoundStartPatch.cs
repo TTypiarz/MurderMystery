@@ -11,9 +11,7 @@ namespace MurderMystery.Patches
         private static void Postfix()
         {
             if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
-            {
                 MurderMystery.Singleton.GamemodeManager.LateStartGamemode();
-            }
         }
     }
 }

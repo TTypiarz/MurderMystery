@@ -1,6 +1,9 @@
-﻿using MEC;
+﻿using Exiled.API.Extensions;
+using MEC;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Roles;
+using MurderMystery.Extensions;
+using System;
 using System.Collections.Generic;
 
 namespace MurderMystery.API.Features
@@ -28,6 +31,8 @@ namespace MurderMystery.API.Features
         public abstract string SpawnMsg { get; }
         public abstract string SpawnInfoMsg { get; }
 
+        public virtual MMRole[] RolesCanView { get; } = new MMRole[] { MMRole.Spectator };
+
         internal virtual void OnFirstSpawn(MMPlayer player)
         {
             if (player.Role != MMRole.Spectator)
@@ -46,8 +51,56 @@ namespace MurderMystery.API.Features
                 player.Player.ShowHint($"\n\n\n\n\n\n{SpawnMsg}\n{SpawnInfoMsg}", 20);
             }
             catch { } // Catch nullref in exiled postfix patch.
+
+            foreach (MMPlayer ply in MMPlayer.List.GetRoles(RolesCanView))
+            {
+                ply.Player.SetPlayerInfoForTargetOnly(player.Player, Name);
+            }
         }
-        internal virtual void ChangingMMRole(MMPlayer player, CustomRole newRole) { }
-        internal virtual void ChangedMMRole(MMPlayer player, CustomRole oldRole) { }
+
+        internal void InternalChangingMMRole(MMPlayer player, CustomRole newRole)
+        {
+            try
+            {
+                ChangingMMRole(player, newRole);
+
+                foreach (MMPlayer ply in this.PlayersCanView())
+                {
+                    ply.Player.SetPlayerInfoForTargetOnly(player.Player, string.Empty);
+                }
+
+                foreach (MMPlayer ply in this.CanSeePlayers())
+                {
+                    player.Player.SetPlayerInfoForTargetOnly(ply.Player, string.Empty);
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e, $"An error occured in the role: {Name}");
+            }
+        }
+        internal void InternalChangedMMRole(MMPlayer player, CustomRole oldRole)
+        {
+            try
+            {
+                ChangedMMRole(player, oldRole);
+
+                foreach (MMPlayer ply in this.PlayersCanView())
+                {
+                    ply.Player.SetPlayerInfoForTargetOnly(player.Player, Name);
+                }
+
+                foreach (MMPlayer ply in this.CanSeePlayers())
+                {
+                    player.Player.SetPlayerInfoForTargetOnly(ply.Player, ply.CustomRole?.Name ?? "None");
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e, $"An error occured in the role: {Name}");
+            }
+        }
+        protected virtual void ChangingMMRole(MMPlayer player, CustomRole newRole) { }
+        protected virtual void ChangedMMRole(MMPlayer player, CustomRole oldRole) { }
     }
 }

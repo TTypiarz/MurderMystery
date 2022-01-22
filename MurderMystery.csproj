@@ -123,6 +123,7 @@
     <Compile Include="Commands\Debug\Status.cs" />
     <Compile Include="Commands\MMCommand.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Extensions\RoleExtensions.cs" />
     <Compile Include="GamemodeManager.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Extensions\PlayerExtensions.cs" />

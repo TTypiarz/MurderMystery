@@ -40,7 +40,7 @@ namespace MurderMystery
         public Random Rng { get; private set; } = new Random();
         public CoroutineHandle[] GamemodeCoroutines { get; } = new CoroutineHandle[2]
         {
-            default, // [0] SpectatorText
+            default, // [0] PlayerText
             default  // [1] RoundTimer
         };
 
@@ -61,8 +61,6 @@ namespace MurderMystery
                         ToggleEvent(MMEventType.Primary, false);
                         ToggleEvent(MMEventType.Player, false);
                         ToggleEvent(MMEventType.Gamemode, false);
-
-                        RespawnTimerPatch.TogglePatch(false);
 
                         Timing.KillCoroutines(GamemodeCoroutines);
 
@@ -106,9 +104,6 @@ namespace MurderMystery
                                 Handlers.Server.RoundEnded += RoundEnded;
                                 Handlers.Server.RestartingRound += RestartingRound;
                                 Handlers.Map.SpawningItem += SpawningItem;
-
-                                MurderMystery.Singleton.Harmony.Patch(LateRoundStartPatch.Original, null, LateRoundStartPatch.Patch);
-                                MurderMystery.Singleton.Harmony.Patch(RoundSummaryPatch.Original, RoundSummaryPatch.Patch);
                             }
                             else
                             {
@@ -117,9 +112,6 @@ namespace MurderMystery
                                 Handlers.Server.RoundEnded -= RoundEnded;
                                 Handlers.Server.RestartingRound -= RestartingRound;
                                 Handlers.Map.SpawningItem -= SpawningItem;
-
-                                MurderMystery.Singleton.Harmony.Unpatch(LateRoundStartPatch.Original, HarmonyLib.HarmonyPatchType.Postfix);
-                                MurderMystery.Singleton.Harmony.Unpatch(RoundSummaryPatch.Original, HarmonyLib.HarmonyPatchType.Prefix);
                             }
 
                             PrimaryEnabled = enable;
@@ -166,7 +158,6 @@ namespace MurderMystery
                                 ServerConsole.FriendlyFire = true;
                                 FriendlyFireConfig.PauseDetector = true;
                                 DependencyUtilities.HandleCedModV3(true);
-                                RespawnTimerPatch.TogglePatch(true);
                             }
                             else
                             {
@@ -184,7 +175,6 @@ namespace MurderMystery
                                 Handlers.Server.EndingRound -= EndingRound;
 
                                 DependencyUtilities.HandleCedModV3(false);
-                                RespawnTimerPatch.TogglePatch(false);
                             }
 
                             GamemodeEnabled = enable;
@@ -342,25 +332,28 @@ namespace MurderMystery
             if (Round.ElapsedTime.TotalSeconds < 5)
                 return;
 
-            int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
-            int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
-
-            if (innocents == 0 && murderers > 0)
+            if (!MurderMystery.InternalDebugSingleplayer)
             {
-                Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
-                goto Allow;
-            }
+                int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
+                int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
 
-            if (innocents > 0 && murderers == 0)
-            {
-                Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
-                goto Allow;
-            }
+                if (innocents == 0 && murderers > 0)
+                {
+                    Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
+                    goto Allow;
+                }
 
-            if (innocents == 0 && murderers == 0)
-            {
-                Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>", Broadcast.BroadcastFlags.Normal, true);
-                goto Allow;
+                if (innocents > 0 && murderers == 0)
+                {
+                    Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
+                    goto Allow;
+                }
+
+                if (innocents == 0 && murderers == 0)
+                {
+                    Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>", Broadcast.BroadcastFlags.Normal, true);
+                    goto Allow;
+                }
             }
 
             if (GamemodeCoroutines[1].IsRunning && TimeUntilEnd <= 0f)
@@ -389,7 +382,6 @@ namespace MurderMystery
                 }
             }
 
-            ev.Target.CustomInfo = string.Empty;
             ev.Target.Ammo.Clear();
         }
 
@@ -628,7 +620,7 @@ namespace MurderMystery
                     MMPlayer.List[i]?.CustomRole?.OnFirstSpawn(MMPlayer.List[i]);
                 }
 
-                GamemodeCoroutines[0] = Timing.RunCoroutine(SpectatorText());
+                GamemodeCoroutines[0] = Timing.RunCoroutine(PlayerText());
 
                 if (MurderMystery.Singleton.Config.RoundTime != 0)
                 {
@@ -650,11 +642,13 @@ namespace MurderMystery
             }
         }
         
-        private IEnumerator<float> SpectatorText()
+        private IEnumerator<float> PlayerText()
         {
             MMLog.Debug("[GamemodeManager::SpectatorText]", "Primary function called.");
 
-            while (GamemodeEnabled)
+            bool RoundTimerEnabled = MurderMystery.Singleton.Config.RoundTime != 0;
+
+            while (GamemodeEnabled && (RoundTimerEnabled ? TimeUntilEnd > 0 : true))
             {
                 yield return Timing.WaitForSeconds(1f);
 
@@ -670,12 +664,25 @@ namespace MurderMystery
                                 $"{(spectated.CustomRole == null ? "<b>They have no role.</b>" : $"<b>They are: {spectated.CustomRole.ColoredName}")}</size></b>", 2);
                         }
                     }
+                    /*else // Will add custom timer for players to show the remaining time, or the remaining target count.
+                    {
+                        if (RoundTimerEnabled)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }*/
                 }
             }
         }
 
         private IEnumerator<float> RoundTimer()
         {
+            MMLog.Debug("[GamemodeManager::RoundTimer]", "Primary function called.");
+
             Config cfg = MurderMystery.Singleton.Config;
 
             while (GamemodeEnabled)

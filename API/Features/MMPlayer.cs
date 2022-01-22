@@ -34,21 +34,21 @@ namespace MurderMystery.API.Features
                             return;
 
                         CustomRole = role;
-                        role.ChangedMMRole(this, null);
+                        role.InternalChangedMMRole(this, null);
                     }
                     else
                     {
                         if (role == null)
                         {
-                            CustomRole.ChangingMMRole(this, null);
+                            CustomRole.InternalChangingMMRole(this, null);
                             CustomRole = null;
                         }
                         else
                         {
                             CustomRole oldRole = CustomRole;
-                            CustomRole.ChangingMMRole(this, role);
+                            CustomRole.InternalChangingMMRole(this, role);
                             CustomRole = role;
-                            role.ChangedMMRole(this, oldRole);
+                            role.InternalChangedMMRole(this, oldRole);
                         }
                     }
                 }
@@ -92,6 +92,8 @@ namespace MurderMystery.API.Features
             if (MurderMystery.Singleton.GamemodeManager.Started)
             {
                 Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.</size>");
+
+                Role = MMRole.Spectator;
             }
             else
             {

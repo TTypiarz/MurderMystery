@@ -19,6 +19,8 @@ namespace MurderMystery.API.Roles
 
         public string EquipmentMessage { get; } = "<color=#ff0000><size=30>You have recieved your equipment.</size></color>";
 
+        public override MMRole[] RolesCanView { get; } = new MMRole[] { MMRole.Spectator, MMRole.Murderer };
+
         public void GiveEquipment(MMPlayer player)
         {
             CustomItemPool.GiveAddToPool(ItemType.KeycardFacilityManager, player);
@@ -32,12 +34,13 @@ namespace MurderMystery.API.Roles
         internal override void OnFirstSpawn(MMPlayer player)
         {
             base.OnFirstSpawn(player);
+        }
 
-            List<MMPlayer> players = MMPlayer.List.GetRole(MMRole.Murderer);
-
-            for (int i = 0; i < players.Count; i++)
+        protected override void ChangingMMRole(MMPlayer player, CustomRole newRole)
+        {
+            if (MurderMystery.Singleton.GamemodeManager.Murderers939Vision)
             {
-                players[i].Player.SetPlayerInfoForTargetOnly(player.Player, Name);
+                player.Player.DisableAllEffects();
             }
         }
     }
