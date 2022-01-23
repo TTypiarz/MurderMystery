@@ -61,6 +61,11 @@ namespace MurderMystery.API.Features
         }
         public CustomRole CustomRole { get; private set; }
 
+        /// <summary>
+        /// Used for detective kill count.
+        /// </summary>
+        public int InnocentKills { get; internal set; } = 0;
+
         public static bool Get(Player ply, out MMPlayer player)
         {
             if (ply == null)
@@ -93,7 +98,7 @@ namespace MurderMystery.API.Features
             {
                 Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.</size>");
 
-                Role = MMRole.Spectator;
+                SetRoleSilently(MMRole.Spectator);
             }
             else
             {

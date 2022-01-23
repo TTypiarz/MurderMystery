@@ -5,6 +5,7 @@
         None,
         Enable,
         Debug,
-        ShowRoles
+        ShowRoles,
+        SetRoles
     }
 }

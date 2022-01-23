@@ -7,6 +7,5 @@ namespace MurderMystery.API.Interfaces
         string EquipmentMessage { get; }
 
         void GiveEquipment(MMPlayer player);
-        void RemoveEquipment(MMPlayer player);
     }
 }

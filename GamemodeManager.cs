@@ -29,19 +29,23 @@ namespace MurderMystery
         public bool PlayerEnabled { get; private set; } = false;
         public bool GamemodeEnabled { get; private set; } = false;
 
+        public bool RestartedRound { get; private set; } = false;
         public bool WaitingPlayers { get; private set; } = false;
         public bool Started { get; private set; } = false;
 
         public bool FailedToStart { get; private set; } = false;
         public float TimeUntilEnd { get; set; } = 0f;
+        public int GeneratorsActivated { get; private set; } = 0;
 
         public bool Murderers939Vision { get; private set; } = false;
+        public bool GeneratorsUnlocked { get; private set; } = false;
 
         public Random Rng { get; private set; } = new Random();
-        public CoroutineHandle[] GamemodeCoroutines { get; } = new CoroutineHandle[2]
+        public CoroutineHandle[] GamemodeCoroutines { get; } = new CoroutineHandle[]
         {
             default, // [0] PlayerText
-            default  // [1] RoundTimer
+            default, // [1] RoundTimer
+            default  // [2] EquipmentTimer
         };
 
         internal void ToggleGamemode(bool enable)
@@ -69,11 +73,14 @@ namespace MurderMystery
                         FailedToStart = false;
                         TimeUntilEnd = -1f;
                         Murderers939Vision = false;
+                        GeneratorsUnlocked = false;
+                        RestartedRound = false;
+                        GeneratorsActivated = 0;
 
                         ServerConsole.FriendlyFire = GameCore.ConfigFile.ServerConfig.GetBool("friendly_fire");
                         FriendlyFireConfig.PauseDetector = false;
 
-                        CustomItemPool.ProtectedItemIds.Clear();
+                        CustomItem.SerialItems.Clear();
                     }
                 }
                 else
@@ -125,11 +132,15 @@ namespace MurderMystery
                             {
                                 Handlers.Player.Verified += Verified;
                                 Handlers.Player.Destroying += Destroying;
+
+                                DependencyUtilities.HandleCommonUtils(true);
                             }
                             else
                             {
                                 Handlers.Player.Verified -= Verified;
                                 Handlers.Player.Destroying -= Destroying;
+
+                                DependencyUtilities.HandleCommonUtils(false);
                             }
 
                             PlayerEnabled = enable;
@@ -149,11 +160,13 @@ namespace MurderMystery
                                 Handlers.Player.DroppingItem += DroppingItem;
                                 Handlers.Player.Shooting += Shooting;
                                 Handlers.Player.PickingUpItem += PickingUpItem;
+                                Handlers.Player.Hurting += Hurting;
                                 Handlers.Player.DroppingAmmo += DroppingAmmo;
                                 Handlers.Player.ReloadingWeapon += ReloadingWeapon;
                                 Handlers.Player.SpawningRagdoll += SpawningRagdoll;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
+                                Handlers.Map.GeneratorActivated += GeneratorActivated;
 
                                 ServerConsole.FriendlyFire = true;
                                 FriendlyFireConfig.PauseDetector = true;
@@ -168,11 +181,13 @@ namespace MurderMystery
                                 Handlers.Player.DroppingItem -= DroppingItem;
                                 Handlers.Player.Shooting -= Shooting;
                                 Handlers.Player.PickingUpItem -= PickingUpItem;
+                                Handlers.Player.Hurting -= Hurting;
                                 Handlers.Player.DroppingAmmo -= DroppingAmmo;
                                 Handlers.Player.ReloadingWeapon -= ReloadingWeapon;
                                 Handlers.Player.SpawningRagdoll -= SpawningRagdoll;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
+                                Handlers.Map.GeneratorActivated -= GeneratorActivated;
 
                                 DependencyUtilities.HandleCedModV3(false);
                             }
@@ -199,6 +214,7 @@ namespace MurderMystery
                 ToggleEvent(MMEventType.Player, true);
 
                 WaitingPlayers = true;
+                RestartedRound = true;
             }
         }
 
@@ -234,12 +250,28 @@ namespace MurderMystery
 
                 ToggleGamemode(false);
             }
+            else
+            {
+                RestartedRound = true;
+            }
         }
 
         private void SpawningItem(SpawningItemEventArgs ev)
         {
-            if (!MurderMystery.AllowedItems.Contains(ev.Pickup.Type))
-                ev.IsAllowed = false;
+            if (RestartedRound)
+            {
+                if (!MurderMystery.AllowedItems.Contains(ev.Pickup.Type))
+                {
+                    ev.IsAllowed = false;
+                    return;
+                }
+
+                try
+                {
+                    CustomItem.SerialItems.Add(ev.Pickup.Serial, CustomItem.Items[MMItem.UnprotectedItem]);
+                }
+                catch { }
+            }
         }
 
         #endregion
@@ -278,12 +310,10 @@ namespace MurderMystery
             if (ev.Reason == Exiled.API.Enums.SpawnReason.RoundStart)
             {
                 ev.NewRole = RoleType.ClassD;
-
-                //ev.Ammo[ItemType.Ammo9x19] = 30;
-                //ev.Ammo[ItemType.Ammo44cal] = 18;
                 ev.Items.Clear();
+                ev.Ammo.Clear();
             }
-            else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin)
+            else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin && ev.NewRole != RoleType.Spectator)
             {
                 if (MMPlayer.Get(ev.Player, out MMPlayer player))
                 {
@@ -294,13 +324,19 @@ namespace MurderMystery
                         player.CustomRole?.OnFirstSpawn(player);
                     });
 
-                    //ev.Ammo[ItemType.Ammo9x19] = 30;
-                    //ev.Ammo[ItemType.Ammo44cal] = 18;
                     ev.Items.Clear();
+                    ev.Ammo.Clear();
                 }
                 else
                 {
                     ev.NewRole = RoleType.Spectator;
+                }
+            }
+            else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin && ev.NewRole == RoleType.Spectator)
+            {
+                if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                {
+                    player.Role = MMRole.Spectator;
                 }
             }
             /*else
@@ -334,6 +370,12 @@ namespace MurderMystery
 
             if (!MurderMystery.InternalDebugSingleplayer)
             {
+                if (GeneratorsActivated == 3)
+                {
+                    Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All generators have been activated.</size>", Broadcast.BroadcastFlags.Normal, true);
+                    goto Allow;
+                }
+
                 int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
                 int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
 
@@ -377,7 +419,23 @@ namespace MurderMystery
                 {
                     if (ply.Role == MMRole.Innocent && killer.Role == MMRole.Detective)
                     {
-                        killer.Player.ReferenceHub.playerStats.DealDamage(new CustomReasonDamageHandler("Shot an innocent player.", 1000000, "L O L"));
+                        if (killer.InnocentKills++ >= 2)
+                        {
+                            CustomReasonDamageHandler customReason = new CustomReasonDamageHandler("Shot too many innocent players.")
+                            {
+                                Damage = 10000000
+                            }; // legit a base-game nullref in the other method, northwood moment
+
+                            ev.Killer.ReferenceHub.playerStats.DealDamage(customReason);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                killer.Player.ShowHint("<size=30>You have killed an innocent player.\n<b>Do not kill any more innocents or you will be slain.</b></size>", 7);
+                            }
+                            catch { }
+                        }
                     }
                 }
             }
@@ -395,8 +453,10 @@ namespace MurderMystery
 
         private void DroppingItem(DroppingItemEventArgs ev)
         {
-            if (CustomItemPool.ProtectedItemIds.Contains(ev.Item.Serial))
-                ev.IsAllowed = false;
+            if (CustomItem.SerialItems.TryGetValue(ev.Item.Serial, out CustomItem item))
+            {
+                item.DroppingItem(ev);
+            }
         }
 
         private void DroppingAmmo(DroppingAmmoEventArgs ev)
@@ -407,30 +467,13 @@ namespace MurderMystery
 
         private void PickingUpItem(PickingUpItemEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Player, out MMPlayer player))
+            if (CustomItem.SerialItems.TryGetValue(ev.Pickup.Serial, out CustomItem item))
             {
-                if (CustomItemPool.ProtectedItemIds.Contains(ev.Pickup.Serial))
-                {
-                    switch (ev.Pickup.Type)
-                    {
-                        case ItemType.GunRevolver:
-                            if (player.Role == MMRole.Innocent)
-                            {
-                                ev.IsAllowed = true;
-                                player.Role = MMRole.Detective;
-                                return;
-                            }
-                            else
-                            {
-                                ev.IsAllowed = false;
-                                return;
-                            }
-
-                        default:
-                            ev.IsAllowed = false;
-                            return;
-                    }
-                }
+                item.PickingUpItem(ev);
+            }
+            else
+            {
+                ev.IsAllowed = false;
             }
         }
 
@@ -442,6 +485,25 @@ namespace MurderMystery
                 {
                     shooter.Player.ShowHint("You cannot shoot your teammates.", 3);
                     ev.IsAllowed = false;
+                }
+            }
+        }
+
+        private void Hurting(HurtingEventArgs ev)
+        {
+            if (MMPlayer.Get(ev.Attacker, out MMPlayer attacker))
+            {
+                if (MMPlayer.Get(ev.Target, out MMPlayer target))
+                {
+                    if (attacker.Role == MMRole.Detective)
+                    {
+                        ev.Amount *= 1.6f;
+                    }
+
+                    if (attacker.Role == target.Role)
+                    {
+                        ev.IsAllowed = false;
+                    }
                 }
             }
         }
@@ -467,6 +529,12 @@ namespace MurderMystery
             {
                 ev.IsAllowed = false;
             }
+        }
+
+        private void GeneratorActivated(GeneratorActivatedEventArgs ev)
+        {
+            GeneratorsActivated++;
+            ev.IsAllowed = true;
         }
 
         #endregion
@@ -529,7 +597,14 @@ namespace MurderMystery
                     if (!MurderMystery.AllowedItems.Contains(item.Type))
                     {
                         item.Destroy();
-
+                    }
+                    else
+                    {
+                        try
+                        {
+                            CustomItem.SerialItems.Add(item.Serial, CustomItem.Items[MMItem.UnprotectedItem]);
+                        }
+                        catch { }
                     }
                 }
 
@@ -539,24 +614,6 @@ namespace MurderMystery
                     UnityEngine.Object.FindObjectOfType<Recontainer079>()._alreadyRecontained = true;
                 }
                 catch { }
-
-                Timing.CallDelayed(MurderMystery.Singleton.Config.EquipmentDelay, () =>
-                {
-                    foreach (CustomRole role in CustomRole.Roles.Values)
-                    {
-                        if (role is IEquipment equipment)
-                        {
-                            List<MMPlayer> players = MMPlayer.List.GetRole(role.Role);
-
-                            for (int i = 0; i < players.Count; i++)
-                            {
-                                equipment.GiveEquipment(players[i]);
-
-                                players[i].Player.Broadcast(10, equipment.EquipmentMessage);
-                            }
-                        }
-                    }
-                });
             }
             catch (Exception e)
             {
@@ -627,6 +684,8 @@ namespace MurderMystery
                     TimeUntilEnd = MurderMystery.Singleton.Config.RoundTime;
                     GamemodeCoroutines[1] = Timing.RunCoroutine(RoundTimer());
                 }
+
+                GamemodeCoroutines[2] = Timing.RunCoroutine(EquipmentTimer(MurderMystery.Singleton.Config.EquipmentDelay));
             }
             catch (Exception e)
             {
@@ -644,11 +703,9 @@ namespace MurderMystery
         
         private IEnumerator<float> PlayerText()
         {
-            MMLog.Debug("[GamemodeManager::SpectatorText]", "Primary function called.");
+            MMLog.Debug("[GamemodeManager::PlayerText]", "Primary function called.");
 
-            bool RoundTimerEnabled = MurderMystery.Singleton.Config.RoundTime != 0;
-
-            while (GamemodeEnabled && (RoundTimerEnabled ? TimeUntilEnd > 0 : true))
+            while (GamemodeEnabled)
             {
                 yield return Timing.WaitForSeconds(1f);
 
@@ -692,16 +749,79 @@ namespace MurderMystery
 
                 if (!Murderers939Vision && TimeUntilEnd <= cfg.Murderers939VisionTime && cfg.Murderers939VisionTime != 0)
                 {
-                    List<MMPlayer> players = MMPlayer.List.GetRole(MMRole.Murderer);
+                    MMLog.Debug("SCP-939 vision is being applied to murderers.");
+
+                    List<MMPlayer> players = MMPlayer.List;
 
                     for (int i = 0; i < players.Count; i++)
                     {
-                        players[i].Player.EnableEffect<CustomPlayerEffects.Visuals939>();
-                        players[i].Player.Broadcast(5, "<size=30>You can now see players through walls.</size>");
+                        if (players[i].Role == MMRole.Murderer)
+                        {
+                            players[i].Player.EnableEffect<CustomPlayerEffects.Visuals939>();
+                            players[i].Player.Broadcast(5, "<b><size=30>You can now see players through walls.</size></b>");
+                        }
+                        else
+                        {
+                            players[i].Player.Broadcast(5, "<b><size=30>Murderers can now see players through walls.</size></b>");
+                        }
                     }
 
                     Murderers939Vision = true;
                 }
+
+                if (!GeneratorsUnlocked && TimeUntilEnd <= cfg.GeneratorUnlockTime && cfg.GeneratorUnlockTime != 0)
+                {
+                    MMLog.Debug("Map generators are being unlocked.");
+
+                    foreach (Scp079Generator generator in UnityEngine.Object.FindObjectsOfType<Scp079Generator>())
+                    {
+                        generator.Network_flags |= (byte)Scp079Generator.GeneratorFlags.Unlocked;
+                    }
+
+                    Map.Broadcast(15, "<size=40>Generators around the map have been unlocked.</size><size=30>\n<i>Note: If all generators are activated, <color=#ff0000>murderers win</color>.</i></size>");
+
+                    GeneratorsUnlocked = true;
+                }
+            }
+        }
+
+        private IEnumerator<float> EquipmentTimer(float delay)
+        {
+            MMLog.Debug("[GamemodeManager::EquipmentTimer]", "Primary function called.");
+
+            yield return Timing.WaitForSeconds(delay);
+
+            MMLog.Debug("[GamemodeManager::EquipmentTimer]", "Giving players their equipment...");
+
+            try
+            {
+                foreach (CustomRole role in CustomRole.Roles.Values)
+                {
+                    if (role is IEquipment equipment)
+                    {
+                        List<MMPlayer> players = MMPlayer.List.GetRole(role.Role);
+
+                        for (int i = 0; i < players.Count; i++)
+                        {
+                            equipment.GiveEquipment(players[i]);
+
+                            players[i].Player.Broadcast(10, equipment.EquipmentMessage);
+                        }
+                    }
+                }
+
+                MMLog.Debug("[GamemodeManager::EquipmentTimer]", "Player equipment has been given.");
+            }
+            catch (Exception e)
+            {
+                MMLog.Error("[GamemodeManager::EquipmentTimer]", e, "Failed to give player equipment.");
+
+                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to give player equipment. Round restart in 10 seconds.</size>");
+                Timing.CallDelayed(10, () =>
+                {
+                    MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
+                    Round.Restart(false);
+                });
             }
         }
         #endregion

@@ -10,6 +10,6 @@ namespace MurderMystery.API.Roles
 
         public override MMRole Role => MMRole.Spectator;
         public override string SpawnMsg => $"<size=70>You are a {ColoredName}</size>";
-        public override string SpawnInfoMsg => "<size=50>You were detected in <color=#00f8fc>overwatch mode</color>.</size>";
+        public override string SpawnInfoMsg => "<b><size=50>You were detected in <color=#00f8fc>overwatch mode</color>.</size></b>";
     }
 }

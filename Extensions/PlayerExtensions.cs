@@ -1,9 +1,11 @@
 ﻿using CommandSystem;
 using Exiled.Permissions.Extensions;
+using InventorySystem.Items;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MurderMystery.Extensions
 {
@@ -95,6 +97,45 @@ namespace MurderMystery.Extensions
             }
 
             return result;
+        }
+
+        public static void RemoveEquipmentItems(this MMPlayer player)
+        {
+            foreach (ushort key in CustomItem.SerialItems.Keys.Where(x => CustomItem.SerialItems[x].IsEquipmentItem))
+            {
+                if (player.Player.Inventory.UserInventory.Items.TryGetValue(key, out ItemBase itemBase))
+                {
+                    if (player.Player.Inventory.NetworkCurItem.SerialNumber == key)
+                    {
+                        player.Player.Inventory.NetworkCurItem = ItemIdentifier.None;
+                        player.Player.Inventory.CurInstance = null;
+                    }
+
+                    player.Player.Inventory.UserInventory.Items.Remove(key);
+                    UnityEngine.Object.Destroy(itemBase);
+                }
+            }
+            player.Player.Inventory.SendItemsNextFrame = true;
+        }
+
+        public static void RemoveInvalidItems(this MMPlayer player)
+        {
+            List<ushort> serials = player.Player.Inventory.UserInventory.Items.Keys.ToList();
+
+            foreach (ushort key in serials)
+            {
+                if (!CustomItem.SerialItems.TryGetValue(key, out _))
+                {
+                    if (player.Player.Inventory.NetworkCurItem.SerialNumber == key)
+                    {
+                        player.Player.Inventory.NetworkCurItem = ItemIdentifier.None;
+                        player.Player.Inventory.CurInstance = null;
+                    }
+
+                    player.Player.Inventory.UserInventory.Items.Remove(key);
+                }
+            }
+            player.Player.Inventory.SendItemsNextFrame = true;
         }
     }
 }

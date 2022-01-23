@@ -44,6 +44,7 @@ namespace MurderMystery.Commands.Debug
                         try
                         {
                             equipment.GiveEquipment(player);
+                            player.Player.Broadcast(10, equipment.EquipmentMessage);
                             response = "Successfully forced equipment on the player.";
                             return true;
                         }

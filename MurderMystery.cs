@@ -1,8 +1,13 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.Events.EventArgs;
 using HarmonyLib;
+using MEC;
+using MurderMystery.API;
+using MurderMystery.API.Features;
 using MurderMystery.Patches;
 using System;
+using System.Collections.Generic;
 
 namespace MurderMystery
 {
@@ -13,7 +18,7 @@ namespace MurderMystery
         public override string Prefix => "murder_mystery";
         public override PluginPriority Priority => PluginPriority.Default;
         public override Version RequiredExiledVersion => new Version(3, 0, 0);
-        public override Version Version => new Version(1, 0, 2);
+        public override Version Version => new Version(1, 1, 0);
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;
@@ -25,8 +30,24 @@ namespace MurderMystery
             ItemType.Painkillers,
             ItemType.Medkit,
             ItemType.Adrenaline,
-            ItemType.ArmorLight
+            ItemType.ArmorLight,
+            ItemType.ArmorHeavy,
+            ItemType.Radio,
+            ItemType.Flashlight,
+            ItemType.Coin,
+            ItemType.SCP500,
+            ItemType.SCP2176,
+            ItemType.GrenadeFlash
         };
+
+#if DEBUG
+        public static List<string> DeveloperIds { get; } = new List<string>()
+        {
+            "76561198288227848@steam" // Zereth
+        };
+
+        public static List<Player> Developers { get; } = new List<Player>();
+#endif
 
         public GamemodeManager GamemodeManager { get; private set; }
         public Harmony Harmony { get; private set; }
@@ -39,7 +60,28 @@ namespace MurderMystery
 
             Harmony.Patch(LateRoundStartPatch.Original, null, LateRoundStartPatch.Patch);
             Harmony.Patch(RoundSummaryPatch.Original, RoundSummaryPatch.Patch);
-            RespawnTimerPatch.EnablePatch();
+            Harmony.Patch(AchievementNullRefPatch.Original, AchievementNullRefPatch.Patch);
+
+            Timing.CallDelayed(3f, () => // Issues patching dependiencies before all plugins load.
+            {
+                try
+                {
+                    if (DependencyChecker.CheckRespawnTimer())
+                    {
+                        RespawnTimerPatch.EnablePatch();
+                        MMLog.Info("[MurderMystery::OnEnabled]", "Patched respawn timer.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    MMLog.Error("[MurderMystery::OnEnabled]", e, "Failed to patch respawn timer.");
+                }
+            });
+
+#if DEBUG
+            Exiled.Events.Handlers.Player.Verified += VerifiedDeveloperCheck;
+            Exiled.Events.Handlers.Player.Destroying += DestroyingDeveloperCheck;
+#endif
 
             Config.Validate();
 
@@ -55,7 +97,27 @@ namespace MurderMystery
             GamemodeManager = null;
             Singleton = null;
 
+#if DEBUG
+            Exiled.Events.Handlers.Player.Verified -= VerifiedDeveloperCheck;
+            Exiled.Events.Handlers.Player.Destroying -= DestroyingDeveloperCheck;
+#endif
+
             base.OnDisabled();
         }
+
+#if DEBUG
+        private void VerifiedDeveloperCheck(VerifiedEventArgs ev)
+        {
+            if (DeveloperIds.Contains(ev.Player.UserId))
+            {
+                Developers.Add(ev.Player);
+            }
+        }
+
+        private void DestroyingDeveloperCheck(DestroyingEventArgs ev)
+        {
+            Developers.Remove(ev.Player);
+        }
+#endif
     }
 }

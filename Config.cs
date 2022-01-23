@@ -34,6 +34,9 @@ namespace MurderMystery
         [Description("The amount of time (in seconds) that must be remaining before murderers are given 939 vision. Set to 0 to disable. (Round timer must be enabled)")]
         public int Murderers939VisionTime { get; set; } = DefaultMurderers939VisionTime;
 
+        [Description("The amount of time (in seconds) that must be remaining before generators are unlocked. Set to 0 to disable. (Round timer must be enabled)")]
+        public int GeneratorUnlockTime { get; set; } = DefaultGeneratorUnlockTime;
+
         public const decimal DefaultMurdererPercentage = 1m / 6m;
         public const int DefaultMurdererOffset = 0;
         public const decimal DefaultDetectivePercentage = 1m / 12m;
@@ -41,6 +44,7 @@ namespace MurderMystery
         public const int DefaultEquipmentDelay = 45;
         public const int DefaultRoundTime = 720;
         public const int DefaultMurderers939VisionTime = 90;
+        public const int DefaultGeneratorUnlockTime = 360;
 
         internal void Validate()
         {

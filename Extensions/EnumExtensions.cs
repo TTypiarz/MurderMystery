@@ -15,6 +15,8 @@ namespace MurderMystery.Extensions
                     return "murdermystery.debug";
                 case MMPerm.ShowRoles:
                     return "murdermystery.showroles";
+                case MMPerm.SetRoles:
+                    return "murdermystery.setroles";
 
                 default:
                     throw new ArgumentException(nameof(perm));

@@ -8,20 +8,21 @@ namespace MurderMystery.API
 
         public const string CedModV3QualifiedName = "CedMod.FriendlyFireAutoban, CedModV3";
 
+        public const string CommonUtilsQualifiedName = "Common_Utilities.Config, Common_Utilities";
+
         public static bool CheckRespawnTimer()
         {
-            if (Type.GetType(RespawnTimerQualifiedName) != null)
-                return true;
-
-            return false;
+            return Type.GetType(RespawnTimerQualifiedName) != null;
         }
 
         public static bool CheckCedModV3()
         {
-            if (Type.GetType(CedModV3QualifiedName) != null)
-                return true;
+            return Type.GetType(CedModV3QualifiedName) != null;
+        }
 
-            return false;
+        public static bool CheckCommonUtils()
+        {
+            return Type.GetType(CommonUtilsQualifiedName) != null;
         }
     }
 }

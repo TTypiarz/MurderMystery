@@ -35,11 +35,13 @@ namespace MurderMystery.API.Features
 
         internal virtual void OnFirstSpawn(MMPlayer player)
         {
+            player.RemoveInvalidItems();
+
             if (player.Role != MMRole.Spectator)
             {
                 try
                 {
-                    player.Player.AddItem(ItemType.ArmorCombat);
+                    CustomItem.SerialItems.Add(player.Player.AddItem(ItemType.ArmorCombat).Serial, CustomItem.Items[MMItem.UnprotectedItem]);
                 }
                 catch { }
             }
@@ -73,6 +75,9 @@ namespace MurderMystery.API.Features
                 {
                     player.Player.SetPlayerInfoForTargetOnly(ply.Player, string.Empty);
                 }
+
+                player.RemoveEquipmentItems();
+                player.RemoveInvalidItems();
             }
             catch (Exception e)
             {
@@ -94,6 +99,8 @@ namespace MurderMystery.API.Features
                 {
                     player.Player.SetPlayerInfoForTargetOnly(ply.Player, ply.CustomRole?.Name ?? "None");
                 }
+
+                player.Player.Broadcast(5, $"<size=30>Your role has been changed to {ColoredName}</size>");
             }
             catch (Exception e)
             {
