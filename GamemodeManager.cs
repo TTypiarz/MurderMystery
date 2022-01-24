@@ -81,6 +81,7 @@ namespace MurderMystery
                         FriendlyFireConfig.PauseDetector = false;
 
                         CustomItem.SerialItems.Clear();
+                        MMPlayer.List.Clear();
                     }
                 }
                 else
