@@ -371,7 +371,7 @@ namespace MurderMystery
 
             if (!MurderMystery.InternalDebugSingleplayer)
             {
-                if (GeneratorsActivated == 3)
+                if (GeneratorsActivated == 3 && MurderMystery.Singleton.Config.GeneratorUnlockTime != 0)
                 {
                     Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All generators have been activated.</size>", Broadcast.BroadcastFlags.Normal, true);
                     goto Allow;
