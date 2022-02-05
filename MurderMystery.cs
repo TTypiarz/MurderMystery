@@ -1,5 +1,6 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.API.Interfaces;
 using Exiled.Events.EventArgs;
 using HarmonyLib;
 using MEC;
@@ -17,8 +18,8 @@ namespace MurderMystery
         public override string Name => "MurderMystery";
         public override string Prefix => "murder_mystery";
         public override PluginPriority Priority => PluginPriority.Default;
-        public override Version RequiredExiledVersion => new Version(3, 0, 0);
-        public override Version Version => new Version(1, 1, 1);
+        public override Version RequiredExiledVersion => new Version(4, 2, 3);
+        public override Version Version => new Version(1, 1, 2);
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;
@@ -41,7 +42,7 @@ namespace MurderMystery
         };
 
 #if DEBUG
-        public static List<string> DeveloperIds { get; } = new List<string>()
+        public static List<string> DeveloperIds => new List<string>()
         {
             "76561198288227848@steam" // Zereth
         };
@@ -81,6 +82,7 @@ namespace MurderMystery
 #if DEBUG
             Exiled.Events.Handlers.Player.Verified += VerifiedDeveloperCheck;
             Exiled.Events.Handlers.Player.Destroying += DestroyingDeveloperCheck;
+            Exiled.Events.Handlers.Server.RestartingRound += RestartingDeveloperCheck;
 #endif
 
             Config.Validate();
@@ -100,6 +102,7 @@ namespace MurderMystery
 #if DEBUG
             Exiled.Events.Handlers.Player.Verified -= VerifiedDeveloperCheck;
             Exiled.Events.Handlers.Player.Destroying -= DestroyingDeveloperCheck;
+            Exiled.Events.Handlers.Server.RestartingRound -= RestartingDeveloperCheck;
 #endif
 
             base.OnDisabled();
@@ -117,6 +120,11 @@ namespace MurderMystery
         private void DestroyingDeveloperCheck(DestroyingEventArgs ev)
         {
             Developers.Remove(ev.Player);
+        }
+
+        private void RestartingDeveloperCheck()
+        {
+            Developers.Clear();
         }
 #endif
     }

@@ -48,6 +48,13 @@ namespace MurderMystery
 
         internal void Validate()
         {
+            ValidatePercentages();
+            ValidateMisc();
+            MMLog.Info("Config has been validated.");
+        }
+
+        private void ValidatePercentages()
+        {
             if (MurdererPercentage + DetectivePercentage > 1m)
             {
                 MMLog.Warn("Murderer and detective percentage configs sum to a value greater than 1. Using default configs...");
@@ -87,7 +94,7 @@ namespace MurderMystery
                 }
             }
 
-            MMLog.Info("Config has been validated.");
+            MMLog.Info("Percentage configs have been validated.");
             return;
 
         UseDefault:
@@ -96,7 +103,83 @@ namespace MurderMystery
             DetectivePercentage = DefaultDetectivePercentage;
             DetectiveOffset = DefaultDetectiveOffset;
 
-            MMLog.Info("Config has been validated.");
+            MMLog.Info("Percentage configs have been validated. (Default configuration was used)");
+        }
+
+        private void ValidateMisc()
+        {
+            if (EquipmentDelay < 0)
+            {
+                MMLog.Warn($"Equipment delay config was less than zero. Setting to zero...");
+                EquipmentDelay = 0;
+            }
+
+            if (EquipmentDelay < 30)
+            {
+                MMLog.Warn("Equipment delay config is less than 30 seconds. (Recommend a higher value.)");
+            }
+
+            if (RoundTime < 0)
+            {
+                MMLog.Warn("Round time config is less than zero. Setting to zero...");
+                RoundTime = 0;
+            }
+
+            if (RoundTime == 0)
+            {
+                MMLog.Warn("Round time config is zero, config will not be used:");
+                MMLog.Warn("Murderer 939 vision will not be used.");
+                MMLog.Warn("Generator unlock time will not be used.");
+            }
+            else
+            {
+                if (RoundTime < 480)
+                {
+                    MMLog.Warn("Round time config is less than 8 minutes. (Recommend a higher value.)");
+                }
+
+                if (Murderers939VisionTime < 0)
+                {
+                    MMLog.Warn("Murderer 939 vision config is less than zero. Setting to zero...");
+                    Murderers939VisionTime = 0;
+                }
+                else if (Murderers939VisionTime > RoundTime)
+                {
+                    MMLog.Warn("Murderer 939 vision config is greater than round time. Minimizing value...");
+                    Murderers939VisionTime = RoundTime;
+                }
+
+                if (Murderers939VisionTime == 0)
+                {
+                    MMLog.Warn("Murderer 939 vision config is zero, config will not be used.");
+                }
+                else if (Murderers939VisionTime < 60)
+                {
+                    MMLog.Warn("Murderer 939 vision config is less than one minute. (Recommend a higher value.)");
+                }
+
+                if (GeneratorUnlockTime < 0)
+                {
+                    MMLog.Warn("Generator unlock time config is less than zero. Setting to zero...");
+                    GeneratorUnlockTime = 0;
+                }
+                else if (GeneratorUnlockTime > RoundTime)
+                {
+                    MMLog.Warn("Generator unlock time is greater than round time, minimizing value...");
+                    GeneratorUnlockTime = RoundTime;
+                }
+
+                if (GeneratorUnlockTime == 0)
+                {
+                    MMLog.Warn("Generator unlock time config is zero, config will not be used.");
+                }
+                else if (GeneratorUnlockTime < 180)
+                {
+                    MMLog.Warn("Generator unlock time is less than 3 minutes. (Recommend a higher value)");
+                }
+            }
+
+            MMLog.Info("Miscellaneous configs have been validated.");
         }
 
         /// <summary>
