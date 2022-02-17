@@ -22,6 +22,10 @@ namespace MurderMystery.Commands
             RegisterCommand(new Debug.GiveEquipment());
             RegisterCommand(new Debug.Info());
             RegisterCommand(new Debug.SetRole());
+            RegisterCommand(new Debug.EnsureFriendlyFire());
+            RegisterCommand(new Debug.KillCoroutine());
+            RegisterCommand(new Debug.ValidateInventory());
+            RegisterCommand(new Debug.RemoveEquipment());
         }
 
         protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)

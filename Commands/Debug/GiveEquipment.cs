@@ -21,6 +21,12 @@ namespace MurderMystery.Commands.Debug
 
         public override bool ExecuteInternally(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
+            if (!MurderMystery.Singleton.GamemodeManager.GamemodeEnabled)
+            {
+                response = "Murder Mystery must be active to use this command.";
+                return false;
+            }
+            
             string[] args = arguments.Array;
 
             if (args.Length < 3)

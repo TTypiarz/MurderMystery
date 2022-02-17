@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Features;
+using MEC;
 using MurderMystery.API.Enums;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,11 @@ namespace MurderMystery.API.Features
         /// </summary>
         public int InnocentKills { get; internal set; } = 0;
 
+        /// <summary>
+        /// Used to tell whether an innocent is free kill or not.
+        /// </summary>
+        public bool FreeKill { get; set; } = false;
+
         public static bool Get(Player ply, out MMPlayer player)
         {
             if (ply == null)
@@ -96,13 +102,17 @@ namespace MurderMystery.API.Features
         {
             if (MurderMystery.Singleton.GamemodeManager.Started)
             {
-                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.</size>");
+                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.</size>\n<size=25>[Check console for details.]</size>");
+                Timing.CallDelayed(1f, () =>
+                    Player.ReferenceHub.gameConsoleTransmission.SendToClient(Player.Connection, "\n<size=70>Murder Mystery</size>\n\n" + MMUtilities.GetInfoMsg(), "white"));
 
                 SetRoleSilently(MMRole.Spectator);
             }
             else
             {
-                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is enabled for this round.</size>");
+                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is enabled for this round.</size>\n<size=25>[Check console for details.]</size>");
+                Timing.CallDelayed(1f, () =>
+                    Player.ReferenceHub.gameConsoleTransmission.SendToClient(Player.Connection, "\n<size=70>Murder Mystery</size>\n\n" + MMUtilities.GetInfoMsg(), "white"));
             }
         }
         internal void Destroying()

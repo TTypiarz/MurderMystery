@@ -2,6 +2,7 @@
 using Exiled.API.Features;
 using MEC;
 using MurderMystery.API.Enums;
+using MurderMystery.API.Features;
 using System;
 
 namespace MurderMystery.Commands.General
@@ -38,13 +39,7 @@ namespace MurderMystery.Commands.General
             {
                 if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
                 {
-                    Map.ClearBroadcasts();
-                    Map.Broadcast(15, "<size=30>Murder Mystery gamemode disabled. Round restart in 10 seconds.</size>");
-                    Timing.CallDelayed(10, () =>
-                    {
-                        MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                        Round.Restart(false);
-                    });
+                    MMUtilities.ForceDisableGamemode("<size=30>Murder Mystery gamemode disabled. Round restart in 10 seconds.</size>");
                     response = "Murder Mystery gamemode disabled. Round restart in 10 seconds.";
                     return true;
                 }

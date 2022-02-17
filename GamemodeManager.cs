@@ -17,6 +17,7 @@ using MurderMystery.Patches;
 using PlayerStatsSystem;
 using System;
 using System.Collections.Generic;
+using static Broadcast;
 using Handlers = Exiled.Events.Handlers;
 
 namespace MurderMystery
@@ -165,6 +166,7 @@ namespace MurderMystery
                                 Handlers.Player.DroppingAmmo += DroppingAmmo;
                                 Handlers.Player.ReloadingWeapon += ReloadingWeapon;
                                 Handlers.Player.SpawningRagdoll += SpawningRagdoll;
+                                Handlers.Player.ActivatingGenerator += ActivatingGenerator;
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
                                 Handlers.Map.GeneratorActivated += GeneratorActivated;
@@ -186,6 +188,7 @@ namespace MurderMystery
                                 Handlers.Player.DroppingAmmo -= DroppingAmmo;
                                 Handlers.Player.ReloadingWeapon -= ReloadingWeapon;
                                 Handlers.Player.SpawningRagdoll -= SpawningRagdoll;
+                                Handlers.Player.ActivatingGenerator -= ActivatingGenerator;
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
                                 Handlers.Map.GeneratorActivated -= GeneratorActivated;
@@ -420,6 +423,9 @@ namespace MurderMystery
                 {
                     if (ply.Role == MMRole.Innocent && killer.Role == MMRole.Detective)
                     {
+                        if (ply.FreeKill)
+                            return;
+
                         if (killer.InnocentKills++ >= 2)
                         {
                             CustomReasonDamageHandler customReason = new CustomReasonDamageHandler("Shot too many innocent players.")
@@ -431,11 +437,21 @@ namespace MurderMystery
                         }
                         else
                         {
-                            try
-                            {
-                                killer.Player.ShowHint("<size=30>You have killed an innocent player.\n<b>Do not kill any more innocents or you will be slain.</b></size>", 7);
-                            }
-                            catch { }
+                            killer.Player.Broadcast(7, "<size=30>You have killed an innocent player.\n<b>Do not kill any more innocents or you will be slain.</b></size>");
+                        }
+                    }
+
+                    if (ply.Role == MMRole.Murderer && killer.Role == MMRole.Detective)
+                    {
+                        if (killer.InnocentKills > 0)
+                        {
+                            killer.InnocentKills--;
+
+                            killer.Player.Broadcast(7, "<size=30>You have killed a murderer, and <b>an innocent kill point has been removed.</b></size>");
+                        }
+                        else
+                        {
+                            killer.Player.Broadcast(7, "<size=30>You have killed a murderer!</size>");
                         }
                     }
                 }
@@ -484,7 +500,7 @@ namespace MurderMystery
             {
                 if (target.Role == shooter.Role)
                 {
-                    shooter.Player.ShowHint("You cannot shoot your teammates.", 3);
+                    shooter.Player.Broadcast(3, "You cannot shoot your teammates.", BroadcastFlags.Normal, true);
                     ev.IsAllowed = false;
                 }
             }
@@ -494,17 +510,22 @@ namespace MurderMystery
         {
             if (MMPlayer.Get(ev.Attacker, out MMPlayer attacker))
             {
+                if (attacker.Role == MMRole.Spectator) // blame abusive admins for these lines of code.
+                {
+                    ev.IsAllowed = false;
+                    return;
+                }
+
                 if (MMPlayer.Get(ev.Target, out MMPlayer target))
                 {
-                    if (attacker.Role == MMRole.Detective)
-                    {
-                        ev.Amount *= 1.6f;
-                    }
-
                     if (attacker.Role == target.Role)
                     {
                         ev.IsAllowed = false;
+                        return;
                     }
+
+                    if (attacker.Role == MMRole.Detective)
+                        ev.Amount *= 1.5f;
                 }
             }
         }
@@ -538,11 +559,29 @@ namespace MurderMystery
             ev.IsAllowed = true;
         }
 
+        private void ActivatingGenerator(ActivatingGeneratorEventArgs ev)
+        {
+            if (MMPlayer.Get(ev.Player, out MMPlayer player))
+            {
+                if (player.Role == MMRole.Innocent)
+                {
+                    if (!player.FreeKill)
+                    {
+                        player.FreeKill = true;
+                        player.Player.Broadcast(7, "<size=30>You have activated a generator as an innocent.\nYou are now freely killable by detectives without repercussions.</size>");
+                    }
+                }
+            }
+            else
+                ev.IsAllowed = false;
+        }
+
         #endregion
 
         #region Primary Functions
         private void StartGamemode()
         {
+            // This constant is considered a full door lock by the base game, and will prevent all door atatus changes unless through RA.
             const DoorLockReason fullLock =
                 DoorLockReason.AdminCommand
                 | DoorLockReason.DecontLockdown
@@ -558,6 +597,22 @@ namespace MurderMystery
                 foreach (WorkstationController controller in WorkstationController.AllWorkstations)
                 {
                     controller.NetworkStatus = 4;
+                }
+
+                foreach (Locker locker in UnityEngine.Object.FindObjectsOfType<Locker>())
+                {
+                    ushort num = 1;
+
+                    for (int i = 0; i < locker.Chambers.Length; i++)
+                    {
+                        if (locker.Chambers[i].RequiredPermissions > 0)
+                        {
+                            locker.Chambers[i].SetDoor(true, null);
+                            locker.NetworkOpenedChambers |= num;
+                        }
+
+                        num *= 2;
+                    }
                 }
 
                 foreach (Door door in Map.Doors)
@@ -577,6 +632,10 @@ namespace MurderMystery
                     }
                     else if (door.RequiredPermissions.RequiredPermissions > 0)
                     {
+                        // For some reason 106_SECONDARY and 106_BOTTOM stay open,
+                        // but i dont really give a shit it makes it interesting.
+                        // :troll:
+
                         door.Base.NetworkTargetState = true;
                         door.Base.NetworkActiveLocks = (ushort)fullLock;
                     }
@@ -609,7 +668,6 @@ namespace MurderMystery
                     }
                 }
 
-
                 try
                 {
                     UnityEngine.Object.FindObjectOfType<Recontainer079>()._alreadyRecontained = true;
@@ -619,12 +677,7 @@ namespace MurderMystery
             catch (Exception e)
             {
                 MMLog.Error($"FATAL ERROR:\n{e}");
-                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>", Broadcast.BroadcastFlags.Normal, true);
-                Timing.CallDelayed(10, () =>
-                {
-                    MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                    Round.Restart(false);
-                });
+                MMUtilities.ForceDisableGamemode("<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>");
                 FailedToStart = true;
             }
         }
@@ -692,12 +745,7 @@ namespace MurderMystery
             {
                 MMLog.Error($"FATAL ERROR:\n{e}");
                 Map.ClearBroadcasts();
-                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>");
-                Timing.CallDelayed(10, () =>
-                {
-                    MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                    Round.Restart(false);
-                });
+                MMUtilities.ForceDisableGamemode("<size=30>Murder Mystery gamemode failed to start. Round restart in 10 seconds.</size>");
                 FailedToStart = true;
             }
         }
@@ -706,33 +754,68 @@ namespace MurderMystery
         {
             MMLog.Debug("[GamemodeManager::PlayerText]", "Primary function called.");
 
+            yield return Timing.WaitForSeconds(20f);
+
             while (GamemodeEnabled)
             {
                 yield return Timing.WaitForSeconds(1f);
 
-                for (int i = 0; i < MMPlayer.List.Count; i++)
+                if (GamemodeCoroutines[1].IsRunning) // Round timer is enabled.
                 {
-                    MMPlayer ply = MMPlayer.List[i];
+                    string roundTime = GetRemainingRoundTime();
 
-                    if (ply.Player.Role == RoleType.Spectator)
+                    for (int i = 0; i < MMPlayer.List.Count; i++)
                     {
-                        if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated) && ply != spectated)
-                        {
-                            ply.Player.ShowHint($"\n\n\n\n\n\n\n\n<size=40>You are spectating: {spectated.Player.Nickname}\n" +
-                                $"{(spectated.CustomRole == null ? "<b>They have no role.</b>" : $"<b>They are: {spectated.CustomRole.ColoredName}")}</size></b>", 2);
-                        }
-                    }
-                    /*else // Will add custom timer for players to show the remaining time, or the remaining target count.
-                    {
-                        if (RoundTimerEnabled)
-                        {
+                        MMPlayer ply = MMPlayer.List[i];
 
+                        if (ply.Player.Role == RoleType.Spectator)
+                        {
+                            if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated) && ply != spectated)
+                            {
+                                string message = string.Concat(
+                                    "\n\n\n\n\n\n\n",
+                                    roundTime,
+                                    "\n\n<size=40>You are spectating: ",
+                                    spectated.Player.Nickname,
+                                    "\n",
+                                    $"{(spectated.CustomRole == null ? "<b>They have no role.</b>" : $"<b>They are: {spectated.CustomRole.ColoredName}")}</size></b>"
+                                    );
+
+                                ply.Player.ShowHint(message, 2);
+                            }
                         }
                         else
                         {
+                            string message = string.Concat(
+                                    "\n\n\n\n\n\n\n\n\n\n",
+                                    roundTime
+                                    );
 
+                            ply.Player.ShowHint(message, 2);
                         }
-                    }*/
+                    }
+                }
+                else // Round timer is not enabled.
+                {
+                    for (int i = 0; i < MMPlayer.List.Count; i++)
+                    {
+                        MMPlayer ply = MMPlayer.List[i];
+
+                        if (ply.Player.Role == RoleType.Spectator)
+                        {
+                            if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated) && ply != spectated)
+                            {
+                                string message = string.Concat(
+                                    "\n\n\n\n\n\n\n\n<size=40>You are spectating: ",
+                                    spectated.Player.Nickname,
+                                    "\n",
+                                    $"{(spectated.CustomRole == null ? "<b>They have no role.</b>" : $"<b>They are: {spectated.CustomRole.ColoredName}")}</size></b>"
+                                    );
+
+                                ply.Player.ShowHint(message, 2);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -750,7 +833,7 @@ namespace MurderMystery
 
                 if (!Murderers939Vision && TimeUntilEnd <= cfg.Murderers939VisionTime && cfg.Murderers939VisionTime != 0)
                 {
-                    MMLog.Debug("SCP-939 vision is being applied to murderers.");
+                    MMLog.Debug("[GamemodeManager::RoundTimer]", "SCP-939 vision is being applied to murderers.");
 
                     List<MMPlayer> players = MMPlayer.List;
 
@@ -772,9 +855,9 @@ namespace MurderMystery
 
                 if (!GeneratorsUnlocked && TimeUntilEnd <= cfg.GeneratorUnlockTime && cfg.GeneratorUnlockTime != 0)
                 {
-                    MMLog.Debug("Map generators are being unlocked.");
+                    MMLog.Debug("[GamemodeManager::RoundTimer]", "Map generators are being unlocked.");
 
-                    foreach (Scp079Generator generator in UnityEngine.Object.FindObjectsOfType<Scp079Generator>())
+                    foreach (Scp079Generator generator in Recontainer079.AllGenerators)
                     {
                         generator.Network_flags |= (byte)Scp079Generator.GeneratorFlags.Unlocked;
                     }
@@ -817,13 +900,21 @@ namespace MurderMystery
             {
                 MMLog.Error("[GamemodeManager::EquipmentTimer]", e, "Failed to give player equipment.");
 
-                Map.Broadcast(15, "<size=30>Murder Mystery gamemode failed to give player equipment. Round restart in 10 seconds.</size>");
-                Timing.CallDelayed(10, () =>
-                {
-                    MurderMystery.Singleton.GamemodeManager.ToggleGamemode(false);
-                    Round.Restart(false);
-                });
+                MMUtilities.ForceDisableGamemode("<size=30>Murder Mystery gamemode failed to give player equipment. Round restart in 10 seconds.</size>");
             }
+        }
+
+        public string GetRemainingRoundTime()
+        {
+            if (!GamemodeCoroutines[1].IsRunning)
+                return "Time remaining: 0:0";
+
+            int timeUntilEnd = (int)Math.Ceiling(TimeUntilEnd);
+
+            if (timeUntilEnd < 0)
+                return "Time remaining: 0:0";
+
+            return $"Time remaining: {timeUntilEnd / 60}:{timeUntilEnd % 60}";
         }
         #endregion
     }

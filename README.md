@@ -27,3 +27,6 @@
 | info | None | Shows info about the current version of murder mystery. | Yes |
 | setrole | murdermystery.setroles | Set a players role during murder mystery. | Yes |
 | status | None | Shows the current status of the gamemode. | Yes |
+| killcoroutine | Debug | Kills a coroutine at the specified index of the main gamemode coroutines array. | Yes |
+| removeequipment | Debug | Removes equipment from a specified players inventory. | Yes |
+| validateinventory | Debug | Removes invalid items from a specified players inventory. | Yes |

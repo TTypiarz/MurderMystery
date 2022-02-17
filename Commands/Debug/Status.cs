@@ -20,7 +20,7 @@ namespace MurderMystery.Commands.Debug
         {
             GamemodeManager gmm = MurderMystery.Singleton.GamemodeManager;
 
-            response = $"Enabled: {(gmm.PrimaryEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
+            response = $"\nEnabled: {(gmm.PrimaryEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"Player Events enabled: {(gmm.PlayerEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"Gamemode Events enabled: {(gmm.GamemodeEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n\n" +
                 $"WaitingForPlayers: {(gmm.WaitingPlayers ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +

@@ -19,7 +19,7 @@ namespace MurderMystery
         public override string Prefix => "murder_mystery";
         public override PluginPriority Priority => PluginPriority.Default;
         public override Version RequiredExiledVersion => new Version(4, 2, 3);
-        public override Version Version => new Version(1, 1, 2);
+        public override Version Version => new Version(1, 2, 0);
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;

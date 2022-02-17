@@ -1,6 +1,7 @@
 ﻿using MurderMystery.API.Enums;
 using MurderMystery.API.Features;
 using MurderMystery.API.Interfaces;
+using MurderMystery.Extensions;
 
 namespace MurderMystery.API.Roles
 {
@@ -15,8 +16,27 @@ namespace MurderMystery.API.Roles
 
         public string EquipmentMessage { get; } = "<color=#00ff00><size=30>You have recieved your equipment.</size></color>";
 
+        internal override void OnFirstSpawn(MMPlayer player)
+        {
+            base.OnFirstSpawn(player);
+
+            player.FreeKill = false;
+        }
+
+        protected override void ChangingMMRole(MMPlayer player, CustomRole newRole)
+        {
+            player.FreeKill = false;
+        }
+
+        protected override void ChangedMMRole(MMPlayer player, CustomRole oldRole)
+        {
+            player.FreeKill = false;
+        }
+
         public void GiveEquipment(MMPlayer player)
         {
+            player.RemoveInvalidItems();
+
             CustomItem.SerialItems.Add(player.Player.AddItem(ItemType.Painkillers).Serial, CustomItem.Items[MMItem.UnprotectedItem]);
         }
     }
