@@ -4,7 +4,7 @@ namespace MurderMystery.API
 {
     public static class DependencyChecker
     {
-        public const string RespawnTimerQualifiedName = "RespawnTimer.RespawnTimer, RespawnTimer";
+        public const string RespawnTimerQualifiedName = "RespawnTimer.EventHandler, RespawnTimer";
 
         public const string CedModV3QualifiedName = "CedMod.FriendlyFireAutoban, CedModV3";
 

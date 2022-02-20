@@ -211,70 +211,105 @@ namespace MurderMystery
 
         private void WaitingForPlayers()
         {
-            if (!PlayerEnabled)
+            try
             {
-                MMLog.Debug("Primary event called. Enabling player events...");
+                if (!PlayerEnabled)
+                {
+                    MMLog.Debug("Primary event called. Enabling player events...");
 
-                ToggleEvent(MMEventType.Player, true);
+                    ToggleEvent(MMEventType.Player, true);
 
-                WaitingPlayers = true;
-                RestartedRound = true;
+                    WaitingPlayers = true;
+                    RestartedRound = true;
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void RoundStarted()
         {
-            if (WaitingPlayers)
+            try
             {
-                MMLog.Debug("Primary event called. Enabling gamemode events and Starting gamemode...");
+                if (WaitingPlayers)
+                {
+                    MMLog.Debug("Primary event called. Enabling gamemode events and Starting gamemode...");
 
-                ToggleEvent(MMEventType.Gamemode, true);
+                    ToggleEvent(MMEventType.Gamemode, true);
 
-                StartGamemode();
+                    StartGamemode();
 
-                Started = true;
+                    Started = true;
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void RoundEnded(RoundEndedEventArgs ev)
         {
-            if (GamemodeEnabled)
+            try
             {
-                MMLog.Debug("Primary event called. Disabling gamemode events...");
+                if (GamemodeEnabled)
+                {
+                    MMLog.Debug("Primary event called. Disabling gamemode events...");
 
-                ToggleEvent(MMEventType.Gamemode, false);
+                    ToggleEvent(MMEventType.Gamemode, false);
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void RestartingRound()
         {
-            if (Started)
+            try
             {
-                MMLog.Debug("Primary event called. Disabling gamemode...");
+                if (Started)
+                {
+                    MMLog.Debug("Primary event called. Disabling gamemode...");
 
-                ToggleGamemode(false);
+                    ToggleGamemode(false);
+                }
+                else
+                {
+                    RestartedRound = true;
+                }
             }
-            else
+            catch (Exception e)
             {
-                RestartedRound = true;
+                MMLog.Error(e);
             }
         }
 
         private void SpawningItem(SpawningItemEventArgs ev)
         {
-            if (RestartedRound)
+            try
             {
-                if (!MurderMystery.AllowedItems.Contains(ev.Pickup.Type))
+                if (RestartedRound)
                 {
-                    ev.IsAllowed = false;
-                    return;
-                }
+                    if (!MurderMystery.AllowedItems.Contains(ev.Pickup.Type))
+                    {
+                        ev.IsAllowed = false;
+                        return;
+                    }
 
-                try
-                {
-                    CustomItem.SerialItems.Add(ev.Pickup.Serial, CustomItem.Items[MMItem.UnprotectedItem]);
+                    try
+                    {
+                        CustomItem.SerialItems.Add(ev.Pickup.Serial, CustomItem.Items[MMItem.UnprotectedItem]);
+                    }
+                    catch { }
                 }
-                catch { }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
@@ -284,24 +319,38 @@ namespace MurderMystery
 
         private void Verified(VerifiedEventArgs ev)
         {
-            MMPlayer player = new MMPlayer(ev.Player);
+            try
+            {
+                MMPlayer player = new MMPlayer(ev.Player);
 
-            player.Verified();
+                player.Verified();
 
-            MMPlayer.List.Add(player);
+                MMPlayer.List.Add(player);
 
-            MMLog.Debug("Player verified. (Added to list)");
+                MMLog.Debug("Player verified. (Added to list)");
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void Destroying(DestroyingEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Player, out MMPlayer player))
+            try
             {
-                player.Destroying();
+                if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                {
+                    player.Destroying();
 
-                MMPlayer.List.Remove(player);
+                    MMPlayer.List.Remove(player);
 
-                MMLog.Debug("Player destroying. (Removed from list)");
+                    MMLog.Debug("Player destroying. (Removed from list)");
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
@@ -311,269 +360,374 @@ namespace MurderMystery
 
         private void ChangingRole(ChangingRoleEventArgs ev)
         {
-            if (ev.Reason == Exiled.API.Enums.SpawnReason.RoundStart)
+            try
             {
-                ev.NewRole = RoleType.ClassD;
-                ev.Items.Clear();
-                ev.Ammo.Clear();
-            }
-            else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin && ev.NewRole != RoleType.Spectator)
-            {
-                if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                if (ev.Reason == Exiled.API.Enums.SpawnReason.RoundStart)
                 {
                     ev.NewRole = RoleType.ClassD;
-                    player.SetRoleSilently(MMRole.Innocent);
-                    Timing.CallDelayed(1f, () =>
-                    {
-                        player.CustomRole?.OnFirstSpawn(player);
-                    });
-
                     ev.Items.Clear();
                     ev.Ammo.Clear();
                 }
-                else
+                else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin && ev.NewRole != RoleType.Spectator)
                 {
-                    ev.NewRole = RoleType.Spectator;
+                    if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                    {
+                        ev.NewRole = RoleType.ClassD;
+                        player.SetRoleSilently(MMRole.Innocent);
+                        Timing.CallDelayed(1f, () =>
+                        {
+                            player.CustomRole?.OnFirstSpawn(player);
+                        });
+
+                        ev.Items.Clear();
+                        ev.Ammo.Clear();
+                    }
+                    else
+                    {
+                        ev.NewRole = RoleType.Spectator;
+                    }
                 }
+                else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin && ev.NewRole == RoleType.Spectator)
+                {
+                    if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                    {
+                        player.Role = MMRole.Spectator;
+                    }
+                }
+                /*else
+                {
+                    if (MMPlayer.Get(ev.Player, out MMPlayer player))
+                    {
+                        player.Role = MMRole.Spectator;
+                    }
+                }*/
             }
-            else if (ev.Reason == Exiled.API.Enums.SpawnReason.LateJoin && ev.NewRole == RoleType.Spectator)
+            catch (Exception e)
             {
-                if (MMPlayer.Get(ev.Player, out MMPlayer player))
-                {
-                    player.Role = MMRole.Spectator;
-                }
+                MMLog.Error(e);
             }
-            /*else
-            {
-                if (MMPlayer.Get(ev.Player, out MMPlayer player))
-                {
-                    player.Role = MMRole.Spectator;
-                }
-            }*/
         }
 
         private void Spawning(SpawningEventArgs ev)
         {
-            ev.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
+            try
+            {
+                ev.Position = RoleType.Scp049.GetRandomSpawnProperties().Item1;
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void RespawningTeam(RespawningTeamEventArgs ev)
         {
-            ev.IsAllowed = false;
-            ev.MaximumRespawnAmount = 0;
-            ev.Players.Clear();
+            try
+            {
+                ev.IsAllowed = false;
+                ev.MaximumRespawnAmount = 0;
+                ev.Players.Clear();
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void EndingRound(EndingRoundEventArgs ev)
         {
-            ev.IsAllowed = false;
-            ev.IsRoundEnded = false;
+            try
+            {
+                ev.IsAllowed = false;
+                ev.IsRoundEnded = false;
 
-            if (Round.ElapsedTime.TotalSeconds < 5)
+                if (Round.ElapsedTime.TotalSeconds < 5)
+                    return;
+
+                if (!MurderMystery.InternalDebugSingleplayer)
+                {
+                    if (GeneratorsActivated == 3 && MurderMystery.Singleton.Config.GeneratorUnlockTime != 0)
+                    {
+                        Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All generators have been activated.</size>", BroadcastFlags.Normal, true);
+                        goto Allow;
+                    }
+
+                    int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
+                    int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
+
+                    if (innocents == 0 && murderers > 0)
+                    {
+                        Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>", BroadcastFlags.Normal, true);
+                        goto Allow;
+                    }
+
+                    if (innocents > 0 && murderers == 0)
+                    {
+                        Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>", BroadcastFlags.Normal, true);
+                        goto Allow;
+                    }
+
+                    if (innocents == 0 && murderers == 0)
+                    {
+                        Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>", BroadcastFlags.Normal, true);
+                        goto Allow;
+                    }
+                }
+
+                if (GamemodeCoroutines[1].IsRunning && TimeUntilEnd <= 0f)
+                {
+                    Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>Murderers have run out of time, and lost.</size>", BroadcastFlags.Normal, true);
+                    goto Allow;
+                }
+
                 return;
 
-            if (!MurderMystery.InternalDebugSingleplayer)
-            {
-                if (GeneratorsActivated == 3 && MurderMystery.Singleton.Config.GeneratorUnlockTime != 0)
-                {
-                    Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All generators have been activated.</size>", Broadcast.BroadcastFlags.Normal, true);
-                    goto Allow;
-                }
-
-                int innocents = MMPlayer.List.GetRolesCount(MMRole.Innocent, MMRole.Detective);
-                int murderers = MMPlayer.List.GetRoleCount(MMRole.Murderer);
-
-                if (innocents == 0 && murderers > 0)
-                {
-                    Map.Broadcast(300, "\n<size=80><color=#ff0000><b>Murderers win</b></color></size>\n<size=30>All innocents have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
-                    goto Allow;
-                }
-
-                if (innocents > 0 && murderers == 0)
-                {
-                    Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>All murderers have been killed.</size>", Broadcast.BroadcastFlags.Normal, true);
-                    goto Allow;
-                }
-
-                if (innocents == 0 && murderers == 0)
-                {
-                    Map.Broadcast(300, "\n<size=80><color=#7f7f7f><b>Stalemate</b></color></size>\n<size=30>All players have been killed. HOW??? ( ͡° ͜ʖ ͡°)</size>", Broadcast.BroadcastFlags.Normal, true);
-                    goto Allow;
-                }
+            Allow:
+                ev.IsAllowed = true;
+                ev.IsRoundEnded = true;
             }
-
-            if (GamemodeCoroutines[1].IsRunning && TimeUntilEnd <= 0f)
+            catch (Exception e)
             {
-                Map.Broadcast(300, "\n<size=80><color=#00ff00><b>Innocents win</b></color></size>\n<size=30>Murderers have run out of time, and lost.</size>", Broadcast.BroadcastFlags.Normal, true);
-                goto Allow;
+                MMLog.Error(e);
             }
-
-            return;
-
-        Allow:
-            ev.IsAllowed = true;
-            ev.IsRoundEnded = true;
         }
 
         private void Dying(DyingEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Target, out MMPlayer ply))
+            try
             {
-                if (MMPlayer.Get(ev.Killer, out MMPlayer killer))
+                if (MMPlayer.Get(ev.Target, out MMPlayer ply))
                 {
-                    if (ply.Role == MMRole.Innocent && killer.Role == MMRole.Detective)
+                    if (MMPlayer.Get(ev.Killer, out MMPlayer killer))
                     {
-                        if (ply.FreeKill)
-                            return;
-
-                        if (killer.InnocentKills++ >= 2)
+                        if (ply.Role == MMRole.Innocent && killer.Role == MMRole.Detective)
                         {
-                            CustomReasonDamageHandler customReason = new CustomReasonDamageHandler("Shot too many innocent players.")
+                            if (ply.FreeKill)
+                                return;
+
+                            if (killer.InnocentKills++ >= 2)
                             {
-                                Damage = 10000000
-                            }; // legit a base-game nullref in the other method, northwood moment
+                                CustomReasonDamageHandler customReason = new CustomReasonDamageHandler("Shot too many innocent players.")
+                                {
+                                    Damage = 10000000
+                                }; // legit a base-game nullref in the other method, northwood moment
 
-                            ev.Killer.ReferenceHub.playerStats.DealDamage(customReason);
+                                ev.Killer.ReferenceHub.playerStats.DealDamage(customReason);
+                            }
+                            else
+                            {
+                                killer.Player.Broadcast(7, "<size=30>You have killed an innocent player.\n<b>Do not kill any more innocents or you will be slain.</b></size>");
+                            }
                         }
-                        else
-                        {
-                            killer.Player.Broadcast(7, "<size=30>You have killed an innocent player.\n<b>Do not kill any more innocents or you will be slain.</b></size>");
-                        }
-                    }
 
-                    if (ply.Role == MMRole.Murderer && killer.Role == MMRole.Detective)
-                    {
-                        if (killer.InnocentKills > 0)
+                        if (ply.Role == MMRole.Murderer && killer.Role == MMRole.Detective)
                         {
-                            killer.InnocentKills--;
+                            if (killer.InnocentKills > 0)
+                            {
+                                killer.InnocentKills--;
 
-                            killer.Player.Broadcast(7, "<size=30>You have killed a murderer, and <b>an innocent kill point has been removed.</b></size>");
-                        }
-                        else
-                        {
-                            killer.Player.Broadcast(7, "<size=30>You have killed a murderer!</size>");
+                                killer.Player.Broadcast(7, "<size=30>You have killed a murderer, and <b>an innocent kill point has been removed.</b></size>");
+                            }
+                            else
+                            {
+                                killer.Player.Broadcast(7, "<size=30>You have killed a murderer!</size>");
+                            }
                         }
                     }
                 }
-            }
 
-            ev.Target.Ammo.Clear();
+                ev.Target.Ammo.Clear();
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void Died(DiedEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Target, out MMPlayer player))
+            try
             {
-                player.Role = MMRole.Spectator;
+                if (MMPlayer.Get(ev.Target, out MMPlayer player))
+                {
+                    player.Role = MMRole.Spectator;
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void DroppingItem(DroppingItemEventArgs ev)
         {
-            if (CustomItem.SerialItems.TryGetValue(ev.Item.Serial, out CustomItem item))
+            try
             {
-                item.DroppingItem(ev);
+                if (CustomItem.SerialItems.TryGetValue(ev.Item.Serial, out CustomItem item))
+                {
+                    item.DroppingItem(ev);
+                }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void DroppingAmmo(DroppingAmmoEventArgs ev)
         {
-            ev.IsAllowed = false;
-            ev.Amount = 0;
+            try
+            {
+                ev.IsAllowed = false;
+                ev.Amount = 0;
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void PickingUpItem(PickingUpItemEventArgs ev)
         {
-            if (CustomItem.SerialItems.TryGetValue(ev.Pickup.Serial, out CustomItem item))
+            try
             {
-                item.PickingUpItem(ev);
+                if (CustomItem.SerialItems.TryGetValue(ev.Pickup.Serial, out CustomItem item))
+                {
+                    item.PickingUpItem(ev);
+                }
+                else
+                {
+                    ev.IsAllowed = false;
+                }
             }
-            else
+            catch (Exception e)
             {
-                ev.IsAllowed = false;
+                MMLog.Error(e);
             }
         }
 
         private void Shooting(ShootingEventArgs ev)
         {
-            if (MMPlayer.Get(Player.Get(ev.TargetNetId), out MMPlayer target) && MMPlayer.Get(ev.Shooter, out MMPlayer shooter))
+            try
             {
-                if (target.Role == shooter.Role)
+                if (MMPlayer.Get(Player.Get(ev.TargetNetId), out MMPlayer target) && MMPlayer.Get(ev.Shooter, out MMPlayer shooter))
                 {
-                    shooter.Player.Broadcast(3, "You cannot shoot your teammates.", BroadcastFlags.Normal, true);
-                    ev.IsAllowed = false;
+                    if (target.Role == shooter.Role)
+                    {
+                        shooter.Player.Broadcast(3, "You cannot shoot your teammates.", BroadcastFlags.Normal, true);
+                        ev.IsAllowed = false;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void Hurting(HurtingEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Attacker, out MMPlayer attacker))
+            try
             {
-                if (attacker.Role == MMRole.Spectator) // blame abusive admins for these lines of code.
+                if (MMPlayer.Get(ev.Attacker, out MMPlayer attacker))
                 {
-                    ev.IsAllowed = false;
-                    return;
-                }
-
-                if (MMPlayer.Get(ev.Target, out MMPlayer target))
-                {
-                    if (attacker.Role == target.Role)
+                    if (attacker.Role == MMRole.Spectator) // blame abusive admins for these lines of code.
                     {
                         ev.IsAllowed = false;
                         return;
                     }
 
-                    if (attacker.Role == MMRole.Detective)
-                        ev.Amount *= 1.5f;
+                    if (MMPlayer.Get(ev.Target, out MMPlayer target))
+                    {
+                        if (attacker.Role == target.Role)
+                        {
+                            ev.IsAllowed = false;
+                            return;
+                        }
+
+                        if (attacker.Role == MMRole.Detective)
+                            ev.Amount *= 1.5f;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
             }
         }
 
         private void ReloadingWeapon(ReloadingWeaponEventArgs ev)
         {
-            ev.Player.SetAmmo(ev.Firearm.AmmoType, ev.Firearm.MaxAmmo);
+            try
+            {
+                ev.Player.SetAmmo(ev.Firearm.AmmoType, ev.Firearm.MaxAmmo);
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void SpawningRagdoll(SpawningRagdollEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Owner, out MMPlayer player))
+            try
             {
-                if (player.Role == MMRole.None || player.Role == MMRole.Spectator)
+                if (MMPlayer.Get(ev.Owner, out MMPlayer player))
+                {
+                    if (player.Role == MMRole.None || player.Role == MMRole.Spectator)
+                    {
+                        ev.IsAllowed = false;
+                        return;
+                    }
+
+                    ev.Nickname += $" [{player.CustomRole.ColoredName}]";
+                }
+                else
                 {
                     ev.IsAllowed = false;
-                    return;
                 }
-
-                ev.Nickname += $" [{player.CustomRole.ColoredName}]";
             }
-            else
+            catch (Exception e)
             {
-                ev.IsAllowed = false;
+                MMLog.Error(e);
             }
         }
 
         private void GeneratorActivated(GeneratorActivatedEventArgs ev)
         {
-            GeneratorsActivated++;
-            ev.IsAllowed = true;
+            try
+            {
+                GeneratorsActivated++;
+                ev.IsAllowed = true;
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         private void ActivatingGenerator(ActivatingGeneratorEventArgs ev)
         {
-            if (MMPlayer.Get(ev.Player, out MMPlayer player))
+            try
             {
-                if (player.Role == MMRole.Innocent)
+                if (MMPlayer.Get(ev.Player, out MMPlayer player))
                 {
-                    if (!player.FreeKill)
+                    if (player.Role == MMRole.Innocent)
                     {
-                        player.FreeKill = true;
-                        player.Player.Broadcast(7, "<size=30>You have activated a generator as an innocent.\nYou are now freely killable by detectives without repercussions.</size>");
+                        if (!player.FreeKill)
+                        {
+                            player.FreeKill = true;
+                            player.Player.Broadcast(7, "<size=30>You have activated a generator as an innocent.\nYou are now freely killable by detectives without repercussions.</size>");
+                        }
                     }
                 }
+                else
+                    ev.IsAllowed = false;
             }
-            else
-                ev.IsAllowed = false;
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
         }
 
         #endregion
@@ -599,7 +753,7 @@ namespace MurderMystery
                     controller.NetworkStatus = 4;
                 }
 
-                foreach (Locker locker in UnityEngine.Object.FindObjectsOfType<Locker>())
+                foreach (Locker locker in UnityEngine.Object.FindObjectsOfType<Locker>()) // Exiled 5.0 apparently STILL hasnt fixed the locker issue.
                 {
                     ushort num = 1;
 
@@ -615,7 +769,7 @@ namespace MurderMystery
                     }
                 }
 
-                foreach (Door door in Map.Doors)
+                foreach (Door door in Door.List)
                 {
                     if (door.Base is CheckpointDoor chkDoor)
                     {
@@ -641,13 +795,13 @@ namespace MurderMystery
                     }
                 }
 
-                foreach (Lift lift in Map.Lifts)
+                foreach (Exiled.API.Features.Lift lift in Exiled.API.Features.Lift.List)
                 {
-                    switch (lift.Type())
+                    switch (lift.Type)
                     {
                         case Exiled.API.Enums.ElevatorType.LczA:
                         case Exiled.API.Enums.ElevatorType.LczB:
-                            lift.Network_locked = true;
+                            lift.IsLocked = true;
                             continue;
                     }
                 }
@@ -768,9 +922,9 @@ namespace MurderMystery
                     {
                         MMPlayer ply = MMPlayer.List[i];
 
-                        if (ply.Player.Role == RoleType.Spectator)
+                        if (ply.Player.Role is Exiled.API.Features.Roles.SpectatorRole spec)
                         {
-                            if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated) && ply != spectated)
+                            if (MMPlayer.Get(spec.SpectatedPlayer, out MMPlayer spectated) && ply != spectated)
                             {
                                 string message = string.Concat(
                                     "\n\n\n\n\n\n\n",
@@ -801,9 +955,9 @@ namespace MurderMystery
                     {
                         MMPlayer ply = MMPlayer.List[i];
 
-                        if (ply.Player.Role == RoleType.Spectator)
+                        if (ply.Player.Role is Exiled.API.Features.Roles.SpectatorRole spec)
                         {
-                            if (MMPlayer.Get(ply.Player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer, out MMPlayer spectated) && ply != spectated)
+                            if (MMPlayer.Get(spec.SpectatedPlayer, out MMPlayer spectated) && ply != spectated)
                             {
                                 string message = string.Concat(
                                     "\n\n\n\n\n\n\n\n<size=40>You are spectating: ",
@@ -826,7 +980,7 @@ namespace MurderMystery
 
             Config cfg = MurderMystery.Singleton.Config;
 
-            while (GamemodeEnabled)
+            while (GamemodeEnabled && TimeUntilEnd > 0)
             {
                 yield return Timing.WaitForOneFrame;
                 TimeUntilEnd -= Timing.DeltaTime;

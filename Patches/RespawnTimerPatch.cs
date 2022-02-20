@@ -2,6 +2,7 @@
 using MEC;
 using MurderMystery.API;
 using MurderMystery.API.Features;
+using System;
 using System.Reflection;
 
 namespace MurderMystery.Patches
@@ -14,9 +15,16 @@ namespace MurderMystery.Patches
         {
             if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
             {
-                Timing.KillCoroutines(RespawnTimer.RespawnTimer.Singleton.handler.timerCoroutine);
-                RespawnTimer.RespawnTimer.Singleton.handler.timerCoroutine = default;
-                MMLog.Info("Killed RespawnTimer coroutine.");
+                try
+                {
+                    Timing.KillCoroutines(RespawnTimer.EventHandler.timerCoroutine);
+                    RespawnTimer.EventHandler.timerCoroutine = default;
+                    MMLog.Info("Killed RespawnTimer coroutine.");
+                }
+                catch (Exception e)
+                {
+                    MMLog.Error(e, "Killing respawn timer coroutine failed!");
+                }
             }
         }
 
@@ -30,11 +38,18 @@ namespace MurderMystery.Patches
 
         private static void InternalEnablePatch()
         {
-            MethodInfo original = typeof(RespawnTimer.Handler).GetMethod("OnRoundStart", BindingFlags.Instance | BindingFlags.NonPublic);
-            HarmonyMethod patch = new HarmonyMethod(typeof(RespawnTimerPatch).GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic));
-            MurderMystery.Singleton.Harmony.Patch(original, null, patch);
+            try
+            {
+                MethodInfo original = typeof(RespawnTimer.EventHandler).GetMethod("OnRoundStart", BindingFlags.Static | BindingFlags.NonPublic);
+                HarmonyMethod patch = new HarmonyMethod(typeof(RespawnTimerPatch).GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic));
+                MurderMystery.Singleton.Harmony.Patch(original, null, patch);
 
-            PatchEnabled = true;
+                PatchEnabled = true;
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e, "Patching respawn timer failed! You may need to update.");
+            }
         }
     }
 }

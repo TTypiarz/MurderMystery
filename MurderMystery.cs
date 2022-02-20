@@ -1,6 +1,5 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
-using Exiled.API.Interfaces;
 using Exiled.Events.EventArgs;
 using HarmonyLib;
 using MEC;
@@ -19,7 +18,7 @@ namespace MurderMystery
         public override string Prefix => "murder_mystery";
         public override PluginPriority Priority => PluginPriority.Default;
         public override Version RequiredExiledVersion => new Version(4, 2, 3);
-        public override Version Version => new Version(1, 2, 0);
+        public override Version Version => new Version(1, 3, 0);
 
         public static MurderMystery Singleton { get; private set; }
         public static bool DebugVersion => InternalDebugVersion;

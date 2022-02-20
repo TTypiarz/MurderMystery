@@ -26,6 +26,7 @@ namespace MurderMystery.API.Features
 
         public abstract string Name { get; }
         public abstract string ColoredName { get; }
+        public abstract Misc.PlayerInfoColorTypes PlayerInfoColor { get; }
 
         public abstract MMRole Role { get; }
         public abstract string SpawnMsg { get; }
@@ -56,7 +57,7 @@ namespace MurderMystery.API.Features
 
             foreach (MMPlayer ply in MMPlayer.List.GetRoles(RolesCanView))
             {
-                ply.Player.SetPlayerInfoForTargetOnly(player.Player, Name);
+                ply.Player.SetPlayerInfoForTargetOnly(player.Player, this.CustomInfoColoredName());
             }
         }
 
@@ -92,12 +93,12 @@ namespace MurderMystery.API.Features
 
                 foreach (MMPlayer ply in this.PlayersCanView())
                 {
-                    ply.Player.SetPlayerInfoForTargetOnly(player.Player, Name);
+                    ply.Player.SetPlayerInfoForTargetOnly(player.Player, this.CustomInfoColoredName());
                 }
 
                 foreach (MMPlayer ply in this.CanSeePlayers())
                 {
-                    player.Player.SetPlayerInfoForTargetOnly(ply.Player, ply.CustomRole?.Name ?? "None");
+                    player.Player.SetPlayerInfoForTargetOnly(ply.Player, ply.CustomRole.CustomInfoColoredName());
                 }
 
                 player.Player.Broadcast(5, $"<size=30>Your role has been changed to {ColoredName}</size>");

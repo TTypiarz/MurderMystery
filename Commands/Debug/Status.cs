@@ -23,9 +23,15 @@ namespace MurderMystery.Commands.Debug
             response = $"\nEnabled: {(gmm.PrimaryEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"Player Events enabled: {(gmm.PlayerEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"Gamemode Events enabled: {(gmm.GamemodeEnabled ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n\n" +
+                $"RestartedRound: {(gmm.RestartedRound ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"WaitingForPlayers: {(gmm.WaitingPlayers ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
                 $"Started: {(gmm.Started ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n" +
-                $"Failed To Start: {(gmm.FailedToStart ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}";
+                $"Failed To Start: {(gmm.FailedToStart ? "<color=#00ff00>YES</color>" : "<color=#ff0000>NO</color>")}\n\n";
+
+            response += "Coroutines:\n" +
+                $"[0] PlayerText: {(gmm.GamemodeCoroutines[0].IsRunning ? "<color=#00ff00>RUNNING</color>" : "<color=#ff0000>NOT RUNNING</color>")}\n" +
+                $"[1] RoundTimer: {(gmm.GamemodeCoroutines[1].IsRunning ? "<color=#00ff00>RUNNING</color>" : "<color=#ff0000>NOT RUNNING</color>")}\n" +
+                $"[2] EquipmentTimer: {(gmm.GamemodeCoroutines[2].IsRunning ? "<color=#00ff00>RUNNING</color>" : "<color=#ff0000>NOT RUNNING</color>")}\n";
 
             return true;
         }

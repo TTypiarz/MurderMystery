@@ -22,5 +22,17 @@ namespace MurderMystery.Extensions
                     throw new ArgumentException(nameof(perm));
             }
         }
+
+        public static string ToColorString(this Misc.PlayerInfoColorTypes color)
+        {
+            try
+            {
+                return Misc.AllowedColors[color];
+            }
+            catch
+            {
+                return "default";
+            }
+        }
     }
 }

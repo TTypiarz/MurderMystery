@@ -9,6 +9,7 @@ namespace MurderMystery.API.Roles
     {
         public override string Name => "Innocent";
         public override string ColoredName => "<color=#00ff00>Innocent</color>";
+        public override Misc.PlayerInfoColorTypes PlayerInfoColor => Misc.PlayerInfoColorTypes.Lime;
 
         public override MMRole Role => MMRole.Innocent;
         public override string SpawnMsg => $"<size=70>You are {ColoredName}</size>";

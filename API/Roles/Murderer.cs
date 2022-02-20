@@ -13,6 +13,7 @@ namespace MurderMystery.API.Roles
     {
         public override string Name => "Murderer";
         public override string ColoredName => "<color=#ff0000>Murderer</color>";
+        public override Misc.PlayerInfoColorTypes PlayerInfoColor => Misc.PlayerInfoColorTypes.Red;
 
         public override MMRole Role => MMRole.Murderer;
         public override string SpawnMsg => $"<size=70>You are a {ColoredName}</size>";

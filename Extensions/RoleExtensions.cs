@@ -21,5 +21,13 @@ namespace MurderMystery.Extensions
         {
             return CustomRole.Roles.Values.Where(x => x != null && x.RolesCanView.Contains(role.Role)).Select(x => x.Role).ToArray();
         }
+
+        public static string CustomInfoColoredName(this CustomRole role)
+        {
+            if (role == null)
+                return "<color=white>None</color>";
+
+            return $"<color={role.PlayerInfoColor.ToColorString()}>{role.Name}</color>";
+        }
     }
 }
