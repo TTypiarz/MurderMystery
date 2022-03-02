@@ -11,7 +11,7 @@
 | detective_offset | 6 | Sets the detective offset, simulates more players in the playercount when multiplying the percentage. |
 | equipment_delay | 45 | The delay from the start of the round (in seconds) before equipment is given to players. |
 | round_time | 720 | The delay from the start of the round (in seconds) before the round ends by default. Set to 0 to disable. |
-| murderers939_vision_time | 90 | The amount of time (in seconds) that must be remaining before murderers are given 939 vision. Set to 0 to disable. (Round timer must be enabled) |
+| murderers939_vision_time | 120 | The amount of time (in seconds) that must be remaining before murderers are given 939 vision. Set to 0 to disable. (Round timer must be enabled) |
 | generator_unlock_time | 360 | The amount of time (in seconds) that must be remaining before generators are unlocked. Set to 0 to disable. (Round timer must be enabled) |
 
 ## Commands:
