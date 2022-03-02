@@ -43,7 +43,7 @@ namespace MurderMystery.API.Roles
             player.RemoveInvalidItems();
 
             ItemBase weapon = player.Player.AddItem(ItemType.GunRevolver).Base;
-            (weapon as Firearm).Status = new FirearmStatus(6, FirearmStatusFlags.MagazineInserted, 553);
+            (weapon as Firearm).Status = new FirearmStatus(6, FirearmStatusFlags.MagazineInserted, 585); // 4 shot cylinder instead of 6.
             CustomItem.SerialItems.Add(weapon.ItemSerial, CustomItem.Items[MMItem.DetectiveWeapon]);
             CustomItem.SerialItems.Add(player.Player.AddItem(ItemType.Medkit).Serial, CustomItem.Items[MMItem.UnprotectedItem]);
             CustomItem.SerialItems.Add(player.Player.AddItem(ItemType.Painkillers).Serial, CustomItem.Items[MMItem.UnprotectedItem]);

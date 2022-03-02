@@ -101,7 +101,7 @@ namespace MurderMystery.Extensions
 
         public static void RemoveEquipmentItems(this MMPlayer player)
         {
-            foreach (ushort key in CustomItem.SerialItems.Keys.Where(x => CustomItem.SerialItems[x].IsEquipmentItem))
+            foreach (ushort key in CustomItem.SerialItems.Keys.Where(x => CustomItem.SerialItems.TryGetValue(x, out CustomItem item) && item.IsEquipmentItem))
             {
                 if (player.Player.Inventory.UserInventory.Items.TryGetValue(key, out ItemBase itemBase))
                 {
@@ -120,9 +120,7 @@ namespace MurderMystery.Extensions
 
         public static void RemoveInvalidItems(this MMPlayer player)
         {
-            List<ushort> serials = player.Player.Inventory.UserInventory.Items.Keys.ToList();
-
-            foreach (ushort key in serials)
+            foreach (ushort key in player.Player.Inventory.UserInventory.Items.Keys)
             {
                 if (!CustomItem.SerialItems.TryGetValue(key, out _))
                 {

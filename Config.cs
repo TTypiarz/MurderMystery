@@ -43,7 +43,7 @@ namespace MurderMystery
         public const int DefaultDetectiveOffset = 6;
         public const int DefaultEquipmentDelay = 45;
         public const int DefaultRoundTime = 720;
-        public const int DefaultMurderers939VisionTime = 90;
+        public const int DefaultMurderers939VisionTime = 120;
         public const int DefaultGeneratorUnlockTime = 360;
 
         internal void Validate()

@@ -102,17 +102,17 @@ namespace MurderMystery.API.Features
         {
             if (MurderMystery.Singleton.GamemodeManager.Started)
             {
-                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.</size>\n<size=25>[Check console for details.]</size>");
+                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is currently active.\n<b>[Check console for details.]</b></size>");
                 Timing.CallDelayed(1f, () =>
-                    Player.ReferenceHub.gameConsoleTransmission.SendToClient(Player.Connection, "\n<size=70>Murder Mystery</size>\n\n" + MMUtilities.GetInfoMsg(), "white"));
+                    Player.ReferenceHub.gameConsoleTransmission.SendToClient(Player.Connection, string.Join("\n", MurderMystery.GamemodeInformation), "white"));
 
                 SetRoleSilently(MMRole.Spectator);
             }
             else
             {
-                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is enabled for this round.</size>\n<size=25>[Check console for details.]</size>");
+                Player.Broadcast(15, "<size=30>Murder Mystery gamemode is enabled for this round.\n<b>[Check console for details.]</b></size>");
                 Timing.CallDelayed(1f, () =>
-                    Player.ReferenceHub.gameConsoleTransmission.SendToClient(Player.Connection, "\n<size=70>Murder Mystery</size>\n\n" + MMUtilities.GetInfoMsg(), "white"));
+                    Player.ReferenceHub.gameConsoleTransmission.SendToClient(Player.Connection, string.Join("\n", MurderMystery.GamemodeInformation), "white"));
             }
         }
         internal void Destroying()

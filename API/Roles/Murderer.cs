@@ -28,7 +28,7 @@ namespace MurderMystery.API.Roles
             player.RemoveInvalidItems();
 
             ItemBase weapon = player.Player.AddItem(ItemType.GunCOM18).Base;
-            (weapon as Firearm).Status = new FirearmStatus(15, FirearmStatusFlags.MagazineInserted, 50);
+            (weapon as Firearm).Status = new FirearmStatus(15, FirearmStatusFlags.MagazineInserted, 42); // Suppressor instead of heavy barrel.
             CustomItem.SerialItems.Add(weapon.ItemSerial, CustomItem.Items[MMItem.LockedEquipment]);
             CustomItem.SerialItems.Add(player.Player.AddItem(ItemType.SCP268).Serial, CustomItem.Items[MMItem.LockedEquipment]);
             CustomItem.SerialItems.Add(player.Player.AddItem(ItemType.Painkillers).Serial, CustomItem.Items[MMItem.UnprotectedItem]);

@@ -170,6 +170,7 @@ namespace MurderMystery
                                 Handlers.Server.RespawningTeam += RespawningTeam;
                                 Handlers.Server.EndingRound += EndingRound;
                                 Handlers.Map.GeneratorActivated += GeneratorActivated;
+                                Handlers.Map.ExplodingGrenade += ExplodingGrenade;
 
                                 ServerConsole.FriendlyFire = true;
                                 FriendlyFireConfig.PauseDetector = true;
@@ -192,6 +193,7 @@ namespace MurderMystery
                                 Handlers.Server.RespawningTeam -= RespawningTeam;
                                 Handlers.Server.EndingRound -= EndingRound;
                                 Handlers.Map.GeneratorActivated -= GeneratorActivated;
+                                Handlers.Map.ExplodingGrenade -= ExplodingGrenade;
 
                                 DependencyUtilities.HandleCedModV3(false);
                             }
@@ -503,14 +505,14 @@ namespace MurderMystery
                         if (ply.Role == MMRole.Innocent && killer.Role == MMRole.Detective)
                         {
                             if (ply.FreeKill)
+                            {
+                                killer.Player.Broadcast(7, "<size=30>You have killed an innocent player <b>that was free-kill.</b></size>");
                                 return;
+                            }
 
                             if (killer.InnocentKills++ >= 2)
                             {
-                                CustomReasonDamageHandler customReason = new CustomReasonDamageHandler("Shot too many innocent players.")
-                                {
-                                    Damage = 10000000
-                                }; // legit a base-game nullref in the other method, northwood moment
+                                CustomReasonDamageHandler customReason = new CustomReasonDamageHandler("Shot too many innocent players.", 10000000);
 
                                 ev.Killer.ReferenceHub.playerStats.DealDamage(customReason);
                             }
@@ -526,7 +528,7 @@ namespace MurderMystery
                             {
                                 killer.InnocentKills--;
 
-                                killer.Player.Broadcast(7, "<size=30>You have killed a murderer, and <b>an innocent kill point has been removed.</b></size>");
+                                killer.Player.Broadcast(7, "<size=30>You have killed a murderer, and <b>an innocent kill point has been deducted.</b></size>");
                             }
                             else
                             {
@@ -645,8 +647,11 @@ namespace MurderMystery
                             return;
                         }
 
-                        if (attacker.Role == MMRole.Detective)
-                            ev.Amount *= 1.5f;
+                        if (attacker.Role == MMRole.Murderer) // Simulate heavy barrel damage.
+                            ev.Amount *= 1.15f;
+
+                        //if (attacker.Role == MMRole.Detective)
+                            //ev.Amount *= 1.2f;
                     }
                 }
             }
@@ -723,6 +728,25 @@ namespace MurderMystery
                 }
                 else
                     ev.IsAllowed = false;
+            }
+            catch (Exception e)
+            {
+                MMLog.Error(e);
+            }
+        }
+
+        private void ExplodingGrenade(ExplodingGrenadeEventArgs ev)
+        {
+            try
+            {
+                if (ev.GrenadeType == Exiled.API.Enums.GrenadeType.Flashbang)
+                {
+                    ev.TargetsToAffect.Clear();
+                    ev.TargetsToAffect.AddRange(Player.List);
+                    ev.TargetsToAffect.Remove(ev.Thrower);
+                }
+                else
+                    ev.TargetsToAffect.Clear();
             }
             catch (Exception e)
             {

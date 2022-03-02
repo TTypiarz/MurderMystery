@@ -27,17 +27,14 @@ namespace MurderMystery.Commands.General
                 return false;
             }
 
-            if (!arguments.Array.Contains("-f"))
+            if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
             {
-                if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
+                if (!arguments.Array.Contains("-f"))
                 {
                     response = $"Murder Mystery gamemode is enabled for this round, and can't be disabled!\nUse disable -f to forcefully disable.";
                     return false;
                 }
-            }
-            else
-            {
-                if (MurderMystery.Singleton.GamemodeManager.WaitingPlayers)
+                else
                 {
                     MMUtilities.ForceDisableGamemode("<size=30>Murder Mystery gamemode disabled. Round restart in 10 seconds.</size>");
                     response = "Murder Mystery gamemode disabled. Round restart in 10 seconds.";
