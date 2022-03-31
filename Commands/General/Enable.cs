@@ -31,7 +31,7 @@ namespace MurderMystery.Commands.General
             }
 
             MurderMystery.Singleton.GamemodeManager.ToggleGamemode(true);
-            response = "Murder Mystery gamemode enabled.";
+            response = "Murder Mystery gamemode has been enabled for the next round.";
             return true;
         }
     }
