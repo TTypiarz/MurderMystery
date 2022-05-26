@@ -11,8 +11,7 @@ namespace MurderMystery.Patches
 
         private static void Postfix()
         {
-            if (MurderMystery.AllowDebug())
-                API.MMLog.Debug("Late round start patch called.");
+            API.MMLog.Debug("Late round start patch called.");
 
             LateRoundStarted.InvokeSafely();
         }
