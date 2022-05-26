@@ -12,7 +12,7 @@ namespace MurderMystery.Patches
         private static void Postfix()
         {
             if (MurderMystery.AllowDebug())
-                Exiled.API.Features.Log.Info("Late round start patch called.");
+                API.MMLog.Debug("Late round start patch called.");
 
             LateRoundStarted.InvokeSafely();
         }

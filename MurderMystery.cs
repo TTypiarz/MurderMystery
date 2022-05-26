@@ -41,5 +41,11 @@ namespace MurderMystery
         {
             return InternalDebug || (Singleton?.Config.Debug ?? false);
         }
+
+        #region Gamemode Manager
+
+
+
+        #endregion
     }
 }

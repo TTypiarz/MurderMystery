@@ -94,6 +94,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\MMLog.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="MurderMystery.cs" />
     <Compile Include="Patches\LateRoundStartPatch.cs" />
