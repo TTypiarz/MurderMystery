@@ -1,6 +1,6 @@
 ﻿using MurderMystery.API;
 
-namespace MurderMystery.Handlers
+namespace MurderMystery.EventHandlers
 {
     public sealed class PlayerHandlers : MMEventHandler
     {

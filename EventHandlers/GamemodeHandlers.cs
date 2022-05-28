@@ -1,10 +1,10 @@
 ﻿using MurderMystery.API;
 
-namespace MurderMystery.Handlers
+namespace MurderMystery.EventHandlers
 {
-    public sealed class PrimaryHandlers : MMEventHandler
+    public sealed class GamemodeHandlers : MMEventHandler
     {
-        public PrimaryHandlers(MurderMystery plugin) => Plugin = plugin;
+        public GamemodeHandlers(MurderMystery plugin) => Plugin = plugin;
 
         public override MurderMystery Plugin { get; }
 
