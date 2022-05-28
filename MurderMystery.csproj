@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="API\MMEventHandler.cs" />
     <Compile Include="API\MMLog.cs" />
+    <Compile Include="Commands\GeneralCmds.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="EventHandlers\GamemodeHandlers.cs" />
     <Compile Include="EventHandlers\PlayerHandlers.cs" />

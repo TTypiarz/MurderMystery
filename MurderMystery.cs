@@ -134,6 +134,7 @@ namespace MurderMystery
         /// </summary>
         internal void PrepareMap()
         {
+            MapPrepared = true;
         }
 
         /// <summary>
@@ -142,6 +143,7 @@ namespace MurderMystery
         /// </summary>
         internal void StartGamemode()
         {
+            Started = true;
         }
 
         #endregion
