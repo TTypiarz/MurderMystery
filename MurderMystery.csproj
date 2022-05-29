@@ -94,8 +94,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API\MMEventHandler.cs" />
-    <Compile Include="API\MMLog.cs" />
+    <Compile Include="API\Internal\MMEventHandler.cs" />
+    <Compile Include="API\Internal\MMLog.cs" />
     <Compile Include="API\MMPlayer.cs" />
     <Compile Include="Commands\GeneralCmds.cs" />
     <Compile Include="Config.cs" />

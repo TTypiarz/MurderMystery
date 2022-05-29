@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MurderMystery.API
+namespace MurderMystery.API.Internal
 {
     public abstract class MMEventHandler
     {

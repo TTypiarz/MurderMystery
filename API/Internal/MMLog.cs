@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace MurderMystery.API
+namespace MurderMystery.API.Internal
 {
     internal static class MMLog
     {
