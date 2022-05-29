@@ -1,5 +1,6 @@
 ﻿using Exiled.Events.EventArgs;
 using MurderMystery.API;
+using MurderMystery.API.Internal;
 using System;
 using System.Collections.Generic;
 using Handlers = Exiled.Events.Handlers;

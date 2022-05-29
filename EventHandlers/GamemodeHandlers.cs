@@ -1,4 +1,4 @@
-﻿using MurderMystery.API;
+﻿using MurderMystery.API.Internal;
 
 namespace MurderMystery.EventHandlers
 {

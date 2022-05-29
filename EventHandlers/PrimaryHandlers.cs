@@ -1,5 +1,5 @@
 ﻿using Exiled.Events.EventArgs;
-using MurderMystery.API;
+using MurderMystery.API.Internal;
 using MurderMystery.Patches;
 using System;
 using Handlers = Exiled.Events.Handlers;
