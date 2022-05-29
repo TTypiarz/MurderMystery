@@ -1,5 +1,6 @@
 ﻿using Exiled.API.Features;
 using MEC;
+using MurderMystery.API.Enums;
 using System.Collections.Generic;
 
 namespace MurderMystery.API
@@ -11,6 +12,28 @@ namespace MurderMystery.API
 
         private readonly Player _player;
         public Player Player => _player;
+
+        private MMCustomRole _role;
+        public MMCustomRole CustomRole => _role;
+        public MMRole Role
+        {
+            get => _role?.Role ?? MMRole.None;
+            set
+            {
+                if ((_role?.Role ?? MMRole.None) != value)
+                {
+                    MMCustomRole newRole = MMCustomRole.Create(this, value);
+
+                    _role?.ChangingRole(newRole);
+
+                    MMCustomRole oldRole = _role;
+
+                    _role = newRole;
+
+                    newRole?.ChangedRole(oldRole);
+                }
+            }
+        }
 
 
         internal static List<MMPlayer> _list;
@@ -31,6 +54,12 @@ namespace MurderMystery.API
 
         internal void Destroying()
         {
+        }
+
+        public void SetRoleSilently(MMRole value)
+        {
+            if ((_role?.Role ?? MMRole.None) != value)
+                _role = MMCustomRole.Create(this, value);
         }
 
 
