@@ -1,10 +1,12 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
+using MEC;
 using MurderMystery.API;
 using MurderMystery.API.Enums;
 using MurderMystery.EventHandlers;
 using System;
+using System.Collections.Generic;
 
 namespace MurderMystery
 {
@@ -39,7 +41,11 @@ namespace MurderMystery
         /// <summary>
         /// A constant used to specify if the current build is for debug purposes. Mainly for compiler purposes.
         /// </summary>
+#if DEBUG
         public const bool InternalDebug = true;
+#else
+        public const bool InternalDebug = false;
+#endif
 
         public override void OnEnabled()
         {
@@ -77,7 +83,7 @@ namespace MurderMystery
             return InternalDebug || (Singleton?.Config.Debug ?? false);
         }
 
-        #region Gamemode Manager
+#region Gamemode Manager
 
         public PrimaryHandlers PrimaryHandlers { get; private set; }
         public PlayerHandlers PlayerHandlers { get; private set; }
@@ -154,6 +160,29 @@ namespace MurderMystery
             Started = true;
         }
 
-        #endregion
+        public void DisableAndRestartWithMessage(string message)
+        {
+            Map.Broadcast(300, message, Broadcast.BroadcastFlags.Normal, true);
+
+            Timing.RunCoroutine(DisableCoroutine());
+        }
+
+        private IEnumerator<float> DisableCoroutine()
+        {
+            float t = 0;
+            while ((PrimaryHandlers?.Enabled ?? false) && t < 10f)
+            {
+                yield return Timing.WaitForOneFrame;
+                t += Timing.DeltaTime;
+            }
+
+            if ((PrimaryHandlers?.Enabled ?? false))
+            {
+                ToggleGamemode(false);
+                Round.Restart(false);
+            }
+        }
+
+#endregion
     }
 }
