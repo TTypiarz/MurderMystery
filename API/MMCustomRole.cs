@@ -13,6 +13,7 @@ namespace MurderMystery.API
         public abstract MMRole Role { get; }
         public abstract string RoleName { get; }
         public abstract string Color { get; }
+        public string ColoredName => string.Concat("<color=#", Color, ">", RoleName, "</color>");
 
         internal virtual void OnFirstSpawn()
         {
