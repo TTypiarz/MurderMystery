@@ -1,6 +1,8 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
+using MurderMystery.API;
+using MurderMystery.API.Enums;
 using MurderMystery.EventHandlers;
 using System;
 
@@ -142,6 +144,13 @@ namespace MurderMystery
         /// </summary>
         internal void StartGamemode()
         {
+            foreach (MMPlayer player in MMPlayer._list)
+            {
+                player.SetRoleSilently(MMRole.Spectator); // placeholder for debugging
+
+                player.CustomRole.OnFirstSpawn();
+            }
+
             Started = true;
         }
 

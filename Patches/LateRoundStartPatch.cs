@@ -1,5 +1,6 @@
 ﻿using Exiled.Events.Extensions;
 using HarmonyLib;
+using MurderMystery.API.Internal;
 using static Exiled.Events.Events;
 
 namespace MurderMystery.Patches
@@ -11,7 +12,7 @@ namespace MurderMystery.Patches
 
         private static void Postfix()
         {
-            API.MMLog.Debug("Late round start patch called.");
+            MMLog.Debug("Late round start patch called.");
 
             LateRoundStarted.InvokeSafely();
         }
