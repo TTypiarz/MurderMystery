@@ -43,7 +43,7 @@ namespace MurderMystery.API
         {
             for (int i = 0; i < _list.Count; i++)
             {
-                if (List[i]._player == player)
+                if (_list[i]._player == player)
                 {
                     return List[i];
                 }
