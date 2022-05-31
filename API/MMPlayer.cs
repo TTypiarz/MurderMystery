@@ -45,6 +45,8 @@ namespace MurderMystery.API
             if (MurderMystery.Singleton.Started)
             {
                 Player.Broadcast(15, string.Concat("<size=30>", MurderMystery.Singleton.Translation.JoinedLateMessage, "</size>"));
+
+                Role = MMRole.Spectator;
             }
             else
             {
@@ -62,6 +64,18 @@ namespace MurderMystery.API
                 _role = MMCustomRole.Create(this, value);
         }
 
+        public void ForceNewRoleInstance(MMRole value)
+        {
+            MMCustomRole newRole = MMCustomRole.Create(this, value);
+
+            _role?.ChangingRole(newRole);
+
+            MMCustomRole oldRole = _role;
+
+            _role = newRole;
+
+            newRole?.ChangedRole(oldRole);
+        }
 
         public static bool TryGet(Player player, out MMPlayer mmplayer)
         {

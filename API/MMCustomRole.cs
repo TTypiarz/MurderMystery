@@ -19,6 +19,9 @@ namespace MurderMystery.API
         {
             if (MurderMystery.InternalDebug)
                 MMLog.Debug(string.Concat("Player: '", Player.Player.Nickname, "' has spawned initially as: ", RoleName));
+
+            // placeholder
+            Player.Player.Broadcast(15, string.Concat("<size=30>You have spawned as: ", ColoredName, "</size>"));
         }
         internal virtual void ChangedRole(MMCustomRole oldRole)
         {
