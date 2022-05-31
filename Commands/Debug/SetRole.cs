@@ -41,7 +41,7 @@ namespace MurderMystery.Commands.Debug
                 return false;
             }
 
-            if (!int.TryParse(args[3], out int roleId))
+            if (!sbyte.TryParse(args[3], out sbyte roleId))
             {
                 response = "Second argument must be an integer representing the role id.\nUse command 'roleids' to see a list of role ids.";
                 return false;
@@ -62,15 +62,31 @@ namespace MurderMystery.Commands.Debug
             }
 
             int success = 0;
-            for (int i = 0; i < players.Count; i++)
+            if (args.Length == 5 && args[4] == "-f")
             {
-                MMPlayer ply = players[i];
-                MMCustomRole oldRoleInstance = ply.CustomRole;
+                for (int i = 0; i < players.Count; i++)
+                {
+                    MMPlayer ply = players[i];
+                    MMCustomRole oldRoleInstance = ply.CustomRole;
 
-                ply.Role = newRole;
+                    ply.ForceNewRoleInstance(newRole);
 
-                if (oldRoleInstance != ply.CustomRole)
-                    success++;
+                    if (oldRoleInstance != ply.CustomRole)
+                        success++;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < players.Count; i++)
+                {
+                    MMPlayer ply = players[i];
+                    MMCustomRole oldRoleInstance = ply.CustomRole;
+
+                    ply.Role = newRole;
+
+                    if (oldRoleInstance != ply.CustomRole)
+                        success++;
+                }
             }
 
             if (success == 0)

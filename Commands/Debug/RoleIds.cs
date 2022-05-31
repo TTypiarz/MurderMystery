@@ -13,7 +13,7 @@ namespace MurderMystery.Commands.Debug
 
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            int[] ids = Enum.GetValues(typeof(MMRole)) as int[];
+            sbyte[] ids = Enum.GetValues(typeof(MMRole)) as sbyte[];
 
             StringBuilder builder = new StringBuilder().AppendLine("Role ids:");
 

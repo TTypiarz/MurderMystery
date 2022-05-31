@@ -32,6 +32,9 @@ namespace MurderMystery.API
         {
             if (MurderMystery.InternalDebug)
                 MMLog.Debug(string.Concat("Player: '", Player.Player.Nickname, "' is changing roles: ", RoleName));
+
+            // placeholder
+            Player.Player.Broadcast(5, string.Concat("<size=30>Your role has been changed to ", ColoredName, "</size>"));
         }
 
         public static MMCustomRole Create(MMPlayer player, MMRole value)
