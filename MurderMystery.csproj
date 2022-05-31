@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\Enums\MMRole.cs" />
+    <Compile Include="API\Enums\MMZone.cs" />
     <Compile Include="API\Internal\MMEventHandler.cs" />
     <Compile Include="API\Internal\MMLog.cs" />
     <Compile Include="API\MMCustomRole.cs" />

@@ -62,6 +62,7 @@ namespace MurderMystery
             GamemodeHandlers = new GamemodeHandlers(this);
 
             Rng = new Random();
+            Zone = MMZone.None;
 
             Config.Validate();
 
@@ -111,6 +112,10 @@ namespace MurderMystery
         /// Specifies if the gamemode is enabled and has started.
         /// </summary>
         public bool Started { get; internal set; }
+        /// <summary>
+        /// The current zone selected for gameplay.
+        /// </summary>
+        public MMZone Zone { get; internal set; }
 
         /// <summary>
         /// The random used by this instance.
@@ -167,12 +172,17 @@ namespace MurderMystery
             {
                 MMLog.Debug("Preparing map...");
 
+                MMLog.Debug("Assigning zone...");
+                
+                if (Zone == MMZone.None)
+                    Zone = (MMZone)Rng.Next(2);
+
+                MMLog.Debug("Zone selected: " + Zone.ToString());
+
                 MMLog.Debug("Fixing workstations...");
 
                 foreach (WorkstationController controller in WorkstationController.AllWorkstations)
-                {
                     controller.NetworkStatus = 4;
-                }
 
                 MMLog.Debug("Fixing lockers...");
 

@@ -1,4 +1,5 @@
 ﻿using Exiled.Events.EventArgs;
+using MurderMystery.API.Enums;
 using MurderMystery.API.Internal;
 using MurderMystery.Patches;
 using System;
@@ -19,6 +20,8 @@ namespace MurderMystery.EventHandlers
             LateRoundStartPatch.LateRoundStarted += LateRoundStarted;
             Handlers.Server.RoundEnded += RoundEnded;
             Handlers.Server.RestartingRound += RestartingRound;
+
+            Plugin.Zone = MMZone.None;
         }
 
         protected override void Disable()
@@ -28,6 +31,8 @@ namespace MurderMystery.EventHandlers
             LateRoundStartPatch.LateRoundStarted -= LateRoundStarted;
             Handlers.Server.RoundEnded -= RoundEnded;
             Handlers.Server.RestartingRound -= RestartingRound;
+
+            Plugin.Zone = MMZone.None;
         }
 
         private void WaitingForPlayers()
