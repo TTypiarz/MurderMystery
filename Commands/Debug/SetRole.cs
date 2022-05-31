@@ -66,13 +66,8 @@ namespace MurderMystery.Commands.Debug
             {
                 for (int i = 0; i < players.Count; i++)
                 {
-                    MMPlayer ply = players[i];
-                    MMCustomRole oldRoleInstance = ply.CustomRole;
-
-                    ply.ForceNewRoleInstance(newRole);
-
-                    if (oldRoleInstance != ply.CustomRole)
-                        success++;
+                    players[i].ForceNewRoleInstance(newRole);
+                    success++;
                 }
             }
             else

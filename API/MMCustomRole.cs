@@ -27,14 +27,16 @@ namespace MurderMystery.API
         {
             if (MurderMystery.InternalDebug)
                 MMLog.Debug(string.Concat("Player: '", Player.Player.Nickname, "' changed roles: ", RoleName));
+
+            Player.Player.Broadcast(5, string.Concat("<size=30>Your role has been changed to ", ColoredName, "</size>"));
         }
         internal virtual void ChangingRole(MMCustomRole newRole)
         {
             if (MurderMystery.InternalDebug)
                 MMLog.Debug(string.Concat("Player: '", Player.Player.Nickname, "' is changing roles: ", RoleName));
 
-            // placeholder
-            Player.Player.Broadcast(5, string.Concat("<size=30>Your role has been changed to ", ColoredName, "</size>"));
+            if (newRole == null)
+                Player.Player.Broadcast(5, "<size=30>Your role has been changed to None</size>");
         }
 
         public static MMCustomRole Create(MMPlayer player, MMRole value)
