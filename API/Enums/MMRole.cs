@@ -3,6 +3,9 @@
     public enum MMRole
     {
         None = -1,
-        Spectator
+        Spectator,
+        Innocent,
+        Murderer,
+        Detective
     }
 }

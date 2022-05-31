@@ -99,6 +99,9 @@
     <Compile Include="API\Internal\MMLog.cs" />
     <Compile Include="API\MMCustomRole.cs" />
     <Compile Include="API\MMPlayer.cs" />
+    <Compile Include="API\Roles\Detective.cs" />
+    <Compile Include="API\Roles\Innocent.cs" />
+    <Compile Include="API\Roles\Murderer.cs" />
     <Compile Include="API\Roles\Spectator.cs" />
     <Compile Include="Commands\DebugCmds.cs" />
     <Compile Include="Commands\Debug\RoleIds.cs" />

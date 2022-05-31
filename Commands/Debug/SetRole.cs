@@ -43,7 +43,7 @@ namespace MurderMystery.Commands.Debug
 
             if (!int.TryParse(args[3], out int roleId))
             {
-                response = "Second argument must be an integer representing the role id.";
+                response = "Second argument must be an integer representing the role id.\nUse command 'roleids' to see a list of role ids.";
                 return false;
             }
 

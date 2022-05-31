@@ -176,7 +176,7 @@ namespace MurderMystery
                 t += Timing.DeltaTime;
             }
 
-            if ((PrimaryHandlers?.Enabled ?? false))
+            if (PrimaryHandlers?.Enabled ?? false)
             {
                 ToggleGamemode(false);
                 Round.Restart(false);
