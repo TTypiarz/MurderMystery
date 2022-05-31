@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Interfaces;
+using System;
 using System.ComponentModel;
 
 namespace MurderMystery
@@ -35,6 +36,50 @@ namespace MurderMystery
         internal void Validate()
         {
             // Validate config here.
+        }
+
+        public bool CalculateRoles(int playercount, out int murderers, out int detectives)
+        {
+            if (playercount < 3)
+            {
+                murderers = playercount > 0 ? 1 : 0;
+                detectives = playercount == 2 ? 1 : 0;
+                return true;
+            }
+
+            if (1d / MurdererPercentage > playercount)
+            {
+                murderers = 1;
+            }
+            else
+            {
+                murderers = (int)Math.Floor(MurdererPercentage * (playercount + MurdererOffset));
+            }
+
+            if (1d / DetectivePercentage > playercount)
+            {
+                detectives = 1;
+            }
+            else
+            {
+                detectives = (int)Math.Floor(DetectivePercentage * (playercount + DetectiveOffset));
+            }
+
+            if (MurdererPercentage + DetectivePercentage == 1d && murderers + detectives != playercount)
+            {
+                switch (new Random().Next(2))
+                {
+                    case 0:
+                        murderers++;
+                        break;
+
+                    case 1:
+                        detectives++;
+                        break;
+                }
+            }
+
+            return murderers + detectives <= playercount;
         }
     }
 }
