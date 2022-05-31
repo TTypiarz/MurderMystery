@@ -1,4 +1,6 @@
 ﻿using Exiled.Events.EventArgs;
+using GameCore;
+using LightContainmentZoneDecontamination;
 using MurderMystery.API;
 using MurderMystery.API.Internal;
 using System;
@@ -19,6 +21,9 @@ namespace MurderMystery.EventHandlers
 
             Handlers.Player.Verified += Verified;
             Handlers.Player.Destroying += Destroying;
+
+            if (DecontaminationController.Singleton != null)
+                DecontaminationController.Singleton.disableDecontamination = true;
         }
 
         protected override void Disable()
@@ -27,6 +32,9 @@ namespace MurderMystery.EventHandlers
 
             Handlers.Player.Verified -= Verified;
             Handlers.Player.Destroying -= Destroying;
+
+            if (DecontaminationController.Singleton != null)
+                DecontaminationController.Singleton.disableDecontamination = ConfigFile.ServerConfig.GetBool("disable_decontamination");
         }
 
         private void Verified(VerifiedEventArgs ev)
