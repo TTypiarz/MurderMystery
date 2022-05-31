@@ -10,6 +10,7 @@ using MurderMystery.API;
 using MurderMystery.API.Enums;
 using MurderMystery.API.Internal;
 using MurderMystery.EventHandlers;
+using MurderMystery.Extensions;
 using System;
 using System.Collections.Generic;
 
@@ -60,6 +61,8 @@ namespace MurderMystery
             PlayerHandlers = new PlayerHandlers(this);
             GamemodeHandlers = new GamemodeHandlers(this);
 
+            Rng = new Random();
+
             Config.Validate();
 
             base.OnEnabled();
@@ -67,6 +70,8 @@ namespace MurderMystery
 
         public override void OnDisabled()
         {
+            Rng = null;
+
             PrimaryHandlers.ToggleHandlers(false);
             PrimaryHandlers = null;
             PlayerHandlers.ToggleHandlers(false);
@@ -106,6 +111,11 @@ namespace MurderMystery
         /// Specifies if the gamemode is enabled and has started.
         /// </summary>
         public bool Started { get; internal set; }
+
+        /// <summary>
+        /// The random used by this instance.
+        /// </summary>
+        public Random Rng { get; internal set; }
 
         /// <summary>
         /// Toggles the gamemode to the specified value, if possible.
@@ -240,14 +250,65 @@ namespace MurderMystery
         /// </summary>
         internal void StartGamemode()
         {
-            foreach (MMPlayer player in MMPlayer._list)
+            try
             {
-                player.SetRoleSilently(MMRole.Spectator); // placeholder for debugging
+                MMLog.Debug("Starting gamemode...");
 
-                player.CustomRole.OnFirstSpawn();
+                MMLog.Debug("Omitting spectating players...");
+
+                for (int i = 0; i < MMPlayer._list.Count; i++)
+                {
+                    MMPlayer ply = MMPlayer._list[i];
+
+                    if (ply.Player.IsOverwatchEnabled || ply.Player.Role == RoleType.Spectator)
+                        ply.SetRoleSilently(MMRole.Spectator);
+                }
+
+                List<MMPlayer> players = MMPlayer._list.GetRole(MMRole.None);
+
+                MMLog.Debug(string.Concat(
+                    "Omitted spectating players. Old count: ",
+                    MMPlayer._list.Count,
+                    ", New count: ",
+                    players.Count
+                ));
+
+                if (!Config.CalculateRoles(players.Count, out int m, out int d))
+                {
+                    throw new Exception("Invalid role calculation.");
+                }
+
+                int totalm = 0;
+                while (totalm < m)
+                {
+                    int index = Rng.Next(players.Count);
+                    players[index].SetRoleSilently(MMRole.Murderer);
+                    players.RemoveAt(index);
+                    totalm++;
+                }
+                int totald = 0;
+                while (totald < d)
+                {
+                    int index = Rng.Next(players.Count);
+                    players[index].SetRoleSilently(MMRole.Detective);
+                    players.RemoveAt(index);
+                    totald++;
+                }
+
+                for (int i = 0; i < players.Count; i++)
+                    players[i].SetRoleSilently(MMRole.Innocent);
+
+                for (int i = 0; i < MMPlayer._list.Count; i++)
+                    MMPlayer._list[i].CustomRole?.OnFirstSpawn();
+
+                Started = true;
+
+                MMLog.Debug("Gamemode has been started.");
             }
-
-            Started = true;
+            catch (Exception e)
+            {
+                DisableOnError(e, "Failed to start the gamemode.");
+            }
         }
 
         internal void DisableOnError(Exception e, string message)
