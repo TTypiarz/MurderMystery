@@ -118,6 +118,11 @@ namespace MurderMystery
         public MMZone Zone { get; internal set; }
 
         /// <summary>
+        /// Property that should return if the game is setting player roles.
+        /// </summary>
+        public bool SettingRoles => MapPrepared && !Started;
+
+        /// <summary>
         /// The random used by this instance.
         /// </summary>
         public Random Rng { get; internal set; }

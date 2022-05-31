@@ -26,7 +26,7 @@ namespace MurderMystery.EventHandlers
 
         private void Spawning(SpawningEventArgs ev)
         {
-            if (Plugin.MapPrepared && !Plugin.Started)
+            if (Plugin.SettingRoles)
             {
                 ev.Position = Plugin.Zone switch
                 {
@@ -39,7 +39,7 @@ namespace MurderMystery.EventHandlers
 
         private void ChangingRole(ChangingRoleEventArgs ev)
         {
-            if (Plugin.MapPrepared && !Plugin.Started)
+            if (Plugin.SettingRoles)
             {
                 ev.NewRole = RoleType.ClassD;
                 ev.Items.Clear();
