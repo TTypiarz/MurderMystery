@@ -1,9 +1,14 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
+using Interactables.Interobjects;
+using Interactables.Interobjects.DoorUtils;
+using InventorySystem.Items.Firearms.Attachments;
+using MapGeneration.Distributors;
 using MEC;
 using MurderMystery.API;
 using MurderMystery.API.Enums;
+using MurderMystery.API.Internal;
 using MurderMystery.EventHandlers;
 using System;
 using System.Collections.Generic;
@@ -141,7 +146,92 @@ namespace MurderMystery
         /// </summary>
         internal void PrepareMap()
         {
-            MapPrepared = true;
+            const DoorLockReason fullLock =
+                DoorLockReason.AdminCommand
+                | DoorLockReason.DecontLockdown
+                | DoorLockReason.SpecialDoorFeature
+                | DoorLockReason.NoPower
+                | DoorLockReason.Lockdown2176;
+
+            try
+            {
+                MMLog.Debug("Preparing map...");
+
+                MMLog.Debug("Fixing workstations...");
+
+                foreach (WorkstationController controller in WorkstationController.AllWorkstations)
+                {
+                    controller.NetworkStatus = 4;
+                }
+
+                MMLog.Debug("Fixing lockers...");
+
+                foreach (Locker locker in UnityEngine.Object.FindObjectsOfType<Locker>())
+                {
+                    ushort num = 1;
+
+                    for (int i = 0; i < locker.Chambers.Length; i++)
+                    {
+                        if (locker.Chambers[i].RequiredPermissions > 0)
+                        {
+                            locker.Chambers[i].SetDoor(true, null);
+                            locker.NetworkOpenedChambers |= num;
+                        }
+
+                        num *= 2;
+                    }
+                }
+
+                MMLog.Debug("Fixing doors...");
+
+                foreach (Door door in Door.List)
+                {
+                    if (door.Base is CheckpointDoor chkDoor)
+                    {
+                        chkDoor.NetworkActiveLocks = (ushort)fullLock;
+                        chkDoor.NetworkTargetState = false;
+                        chkDoor.UsedBy106 = false;
+
+                        for (int i = 0; i < chkDoor._subDoors.Length; i++)
+                        {
+                            DoorVariant subDoor = chkDoor._subDoors[i];
+                            subDoor.NetworkActiveLocks = (ushort)fullLock;
+                            subDoor.NetworkTargetState = false;
+                            subDoor.UsedBy106 = false;
+                        }
+                    }
+                    else if (door.RequiredPermissions.RequiredPermissions > 0)
+                    {
+                        door.Base.NetworkActiveLocks = (ushort)fullLock;
+                        door.Base.NetworkTargetState = true;
+                    }
+                }
+
+                MMLog.Debug("Fixing lifts...");
+
+                foreach (Exiled.API.Features.Lift lift in Exiled.API.Features.Lift.List)
+                {
+                    switch (lift.Type)
+                    {
+                        case ElevatorType.LczA:
+                        case ElevatorType.LczB:
+                            lift.IsLocked = true;
+                            continue;
+                    }
+                }
+
+                MMLog.Debug("Fixing 079 recontainment...");
+
+                UnityEngine.Object.FindObjectOfType<Recontainer079>()._alreadyRecontained = true;
+
+                MapPrepared = true;
+
+                MMLog.Debug("Map has been prepared.");
+            }
+            catch (Exception e)
+            {
+                DisableOnError(e, "Failed to prepare the map.");
+            }
         }
 
         /// <summary>
@@ -158,6 +248,24 @@ namespace MurderMystery
             }
 
             Started = true;
+        }
+
+        internal void DisableOnError(Exception e, string message)
+        {
+            MMLog.Error(string.Concat(
+                "An error occured (",
+                message,
+                "):\n",
+                e?.ToString() ?? "No exception."
+            ));
+
+            message = string.Concat(
+                "<size=30>Murder mystery gamemode has been disabled. Round restart in 10 seconds.</size>\n<size=28><color=red>Error: ",
+                string.IsNullOrEmpty(message) ? "Unspecified. (blame bad developer :troll:)" : message,
+                "</color></size>"
+            );
+
+            DisableAndRestartWithMessage(message);
         }
 
         public void DisableAndRestartWithMessage(string message)

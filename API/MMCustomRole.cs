@@ -37,6 +37,9 @@ namespace MurderMystery.API
             {
                 MMRole.None => null,
                 MMRole.Spectator => new Spectator(player),
+                MMRole.Innocent => new Innocent(player),
+                MMRole.Murderer => new Murderer(player),
+                MMRole.Detective => new Detective(player),
                 _ => throw new ArgumentOutOfRangeException("value", value, "Value must be defined."),
             };
         }
