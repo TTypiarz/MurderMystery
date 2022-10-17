@@ -1,1 +1,2 @@
-﻿# Murder Mystery
+﻿# Shitty Plugin
+ 
